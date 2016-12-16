@@ -1,7 +1,6 @@
 {
   "scripts": {
     "start": "babel-node ./src/commands/start --presets react",
-    "prebuild": "rimraf dist",
     "build": "NODE_ENV=production babel-node ./src/commands/build --presets react"
   },
   "dependencies": {
@@ -30,5 +29,8 @@
     "stream-filter": "^2.1.0",
     "webpack": "^1.14.0",
     "webpack-dev-middleware": "^1.8.4"
+  },
+  "devDependencies": {
+    "css-loader": "^0.26.1"
   }
 }

@@ -9,6 +9,8 @@ const Home = require("./layouts/Home")
 
 const AppContainer = require("../src/client/AppContainer")
 
+require("./defaults.css")
+
 module.exports = (
   <AppContainer>
     <Link to="/" activeOnlyWhenExact activeStyle={{ color: "red" }}>

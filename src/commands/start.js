@@ -12,8 +12,12 @@ const ReactDOMServer = require("react-dom/server")
 
 const getDOMRoot = require("../dom/getDOMRoot")
 
+console.log("🌍 Hey! Let's hack things a bit")
+let lastStamp = Date.now()
+
 server.use(webpackDevMiddleware(
-  webpack(require(path.join(process.cwd(), "examples", "webpack.config.js")))
+  webpack(require(path.join(process.cwd(), "examples", "webpack.config.js"))),
+  { noInfo: true }
 ))
 
 const Document = require(path.join(process.cwd(), "examples", "container/Document.js"))
@@ -29,4 +33,7 @@ server.get("*", (req, res) => {
 watch({
   path: path.join(process.cwd(), "./examples/content"),
   onFile: processFile,
+  onFirstBatch: () => {
+    console.log("✨ Open http://localhost:1414 " + (Date.now() - lastStamp) + "ms")
+  },
 })

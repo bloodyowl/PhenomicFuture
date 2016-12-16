@@ -11,10 +11,10 @@ const createServerRenderContext = require("react-router/createServerRenderContex
 const isContainer = component => component.__isContainer === true
 const nodeFetch = require("node-fetch")
 
-const app = require("../../examples/App")
+const app = require("../client/app.server")
 
 const prerender = url => {
-  return new Promise((resolve, reject) => {
+  return app.then(app => new Promise((resolve, reject) => {
     const toURL = buildURL("http://localhost:1414/api/")
     const fetch = (a) => {
       const json = nodeFetch(toURL(a))
@@ -46,7 +46,7 @@ const prerender = url => {
         </ServerRouter>
       </Provider>
     )
-  })
+  }))
 }
 
 module.exports = prerender
