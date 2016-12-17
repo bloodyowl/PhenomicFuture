@@ -48,8 +48,7 @@ require("../client/app.server")
       .then(() => app)
   })
   .then(app => {
-    const matches = app.props.children.filter(child => child.type === Match)
-
+    const matches = app.props.children.filter(child => child.props.pattern)
     const toURL = buildURL("http://localhost:1414/api/")
     const fetch = (a) => {
       const json = nodeFetch(toURL(a))

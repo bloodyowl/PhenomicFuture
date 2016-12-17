@@ -12,9 +12,13 @@ const Document = (props) => (
       <div
         dangerouslySetInnerHTML={{ __html: props.body }}
       />
-      <script id="Hydration" type="text/json">
-        {JSON.stringify(props.state)}
-      </script>
+      <script
+        id="Hydration"
+        type="text/json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(props.state),
+        }}
+      />
       <script src="/bundle.js" async></script>
     </body>
   </html>
