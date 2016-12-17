@@ -1,6 +1,7 @@
 const React = require("react")
 const mapValues = require("../utils/mapValues")
 const QueryString = require("../utils/QueryString")
+const Redirect = require("react-router/Redirect").default
 
 const createContainer = (Component, getQueries) => {
   class Container extends React.Component {
@@ -47,6 +48,14 @@ const createContainer = (Component, getQueries) => {
       const isLoading = values.some(item => store.get(item).status !== "idle")
       const props = Object.keys(this.queries)
         .reduce((acc, key) => Object.assign(acc, { [ key ]: store.get(this.queries[key]).value }), {})
+      const hasErrored = values.some(item => store.get(item).status === "error")
+      if(hasErrored) {
+        return (
+          <Redirect
+            to="/404.html"
+          />
+        )
+      }
       return (
         <Component
           isLoading={isLoading}

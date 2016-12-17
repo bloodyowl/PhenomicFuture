@@ -18,11 +18,18 @@ const createStore = (initialState) => {
          { [key]: { status: "idle", value } }
        ))
     },
-    setAsLoading: (key, value) => {
+    setAsLoading: (key) => {
       store.update(Object.assign(
        {},
        state,
        { [key]: { status: "loading", value: null } }
+     ))
+    },
+    setAsError: (key, error) => {
+      store.update(Object.assign(
+       {},
+       state,
+       { [key]: { status: "error", value: error } }
      ))
     },
     update(nextState) {

@@ -15,7 +15,7 @@ const Document = (props) => (
       <script id="Hydration" type="text/json">
         {JSON.stringify(props.state)}
       </script>
-      <script src="/bundle.js"></script>
+      <script src="/bundle.js" async></script>
     </body>
   </html>
 )

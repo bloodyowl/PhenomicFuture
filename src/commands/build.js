@@ -19,6 +19,7 @@ const QueryString = require("../utils/QueryString")
 const Document = require(path.join(process.cwd(), "examples", "container/Document.js"))
 const buildURL = require("../utils/buildURL")
 const createSitemap = require("../seo/sitemap")
+const createRSS = require("../seo/feed")
 
 const files = []
 
@@ -72,51 +73,68 @@ require("../client/app.server")
       return Promise.all(paginated.map((match, index) => fetchNextURL(match.props.pattern, queries[index])))
         .then(() => urls)
     }
-
-    nodeFetch("http://localhost:1414/api/posts.json")
+    const posts = nodeFetch("http://localhost:1414/api/posts.json")
       .then(res => res.json())
-      .then(json => getPages()
-        .then(urls => [
-          ...json.list.map(item => item.url),
-          ...urls,
-        ])
-      )
-      .then(json => {
-        return Promise.all([
-          Promise.all(json.map(url => {
-            return prerender(url)
-              .then(rendered => {
-                return Promise.all([
-                  writeFile(
-                    path.join(process.cwd(), "dist", "." + rendered.url, "index.html"),
-                    `<!DOCTYPE html>${
-                        ReactDOMServer.renderToStaticMarkup(
-                          <Document body={getDOMRoot(rendered.value)} state={rendered.state} />
+
+    Promise.all([
+      posts
+        .then(json => getPages()
+          .then(urls => [
+            ...json.list.map(item => item.url),
+            ...urls,
+          ])
+        )
+        .then(json => {
+          return Promise.all([
+            Promise.all(json.map(url => {
+              return prerender(url)
+                .then(rendered => {
+                  return Promise.all([
+                    writeFile(
+                      path.join(process.cwd(), "dist", "." + rendered.url, "index.html"),
+                      `<!DOCTYPE html>${
+                          ReactDOMServer.renderToStaticMarkup(
+                            <Document body={getDOMRoot(rendered.value)} state={rendered.state} />
+                          )
+                        }`
+                    ),
+                    ...Object.keys(rendered.state)
+                      .map(key => {
+                        const config = QueryString.decode(key)
+                        return writeFile(
+                          toStaticURL(config),
+                          JSON.stringify(rendered.state[key].value)
                         )
-                      }`
-                  ),
-                  ...Object.keys(rendered.state)
-                    .map(key => {
-                      const config = QueryString.decode(key)
-                      return writeFile(
-                        toStaticURL(config),
-                        JSON.stringify(rendered.state[key].value)
-                      )
-                    })
-                ])
-              })
-              .catch((err) => {
-                console.error(`Error rendering ${ url }`)
-                console.error(err)
-              })
-          })),
-          createSitemap(json)
+                      })
+                  ])
+                })
+                .catch((err) => {
+                  console.error(`Error rendering ${ url }`)
+                  console.error(err)
+                })
+            })),
+            createSitemap(json)
+              .then(xml => writeFile(
+                path.join(process.cwd(), "dist/sitemap.xml"),
+                xml
+              ))
+          ])
+        }),
+        posts
+          .then(posts => Promise.all(
+            posts.list
+              .map(item => (
+                nodeFetch(`http://localhost:1414/api/post${ item.url }.json`)
+                  .then(res => res.json())
+              ))
+          ))
+          .then(posts => createRSS(posts)
             .then(xml => writeFile(
-              path.join(process.cwd(), "dist/sitemap.xml"),
+              path.join(process.cwd(), "dist/feed.xml"),
               xml
             ))
-        ])
-      })
+          )
+      ])
       .then(() => {
         console.log("📃 Pre-rendering done " + (Date.now() - lastStamp) + "ms")
         lastStamp = Date.now()

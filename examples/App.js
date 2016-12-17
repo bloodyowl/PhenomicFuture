@@ -6,6 +6,7 @@ const Link = require("react-router/Link").default
 const PostList = require("./layouts/PostList")
 const Post = require("./layouts/Post")
 const Home = require("./layouts/Home")
+const Error404 = require("./layouts/Error404")
 
 const AppContainer = require("../src/client/AppContainer")
 
@@ -19,5 +20,6 @@ module.exports = (
     <Match exactly pattern="/" component={Home} />
     <Match exactly pattern="/post-list/:after?" paginated component={PostList} />
     <Miss component={Post} />
+    <Match exactly pattern="/404.html" component={Error404} />
   </AppContainer>
 )

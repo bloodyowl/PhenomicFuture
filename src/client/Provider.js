@@ -21,6 +21,9 @@ class Provider extends React.Component {
           .then(value => {
             this.props.store.set(key, value)
           })
+          .catch(error => {
+            this.props.store.setAsError(key, error)
+          })
       })
     )
       .then(() => {
