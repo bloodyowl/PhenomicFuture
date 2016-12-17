@@ -1,8 +1,18 @@
 const levelUp = require("levelup")
 const subLevel = require("level-sublevel")
+const mapValues = require("../utils/mapValues")
 
-const db = subLevel(levelUp("/tmp/sublevel"))
+const destruction = new Promise((resolve, reject) => {
+  require("leveldown").destroy(".tmp/db", (error) => {
+    if(error) {
+      reject(error)
+    } else {
+      resolve()
+    }
+  })
+})
 
+const db = subLevel(levelUp(".tmp/db"))
 const options = { valueEncoding: "json" }
 
 const getSublevel = (db, sub) => {
@@ -36,11 +46,6 @@ const Database = {
         }
       })
     })
-  },
-  update(sub, key, func) {
-    return Database.get(sub, key)
-      .then(value => func(value.value))
-      .then(value => Database.put(sub, key, value))
   },
   getPostList(config) {
     return new Promise((resolve, reject) => {
@@ -143,4 +148,10 @@ const Database = {
   },
 }
 
-module.exports = Database
+
+module.exports = mapValues(Database, (method) => {
+  return (a, b, c) => {
+    return destruction
+      .then(() => method(a, b, c))
+  }
+})

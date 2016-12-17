@@ -1,0 +1,8 @@
+exports[`Databack should be able to put & get a value 1`] = `
+Object {
+  "key": "bar",
+  "value": "bar",
+}
+`;
+
+exports[`Databack should throw when value isn't there 1`] = `[NotFoundError: Key not found in database]`;
