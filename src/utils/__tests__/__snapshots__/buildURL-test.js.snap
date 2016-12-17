@@ -1,0 +1,5 @@
+exports[`buildURL should build URLs 1`] = `"ROOT/test.json"`;
+
+exports[`buildURL should build URLs 2`] = `"ROOT/test/10.json"`;
+
+exports[`buildURL should build URLs 3`] = `"ROOT/test/10/test.json"`;

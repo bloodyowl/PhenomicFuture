@@ -5,7 +5,6 @@ $ npm run build # generates all the files
 
 ## todo:
 
-- rss
 - add tests & flow
 - db invalidation
 - post hot-reload (HoC/websocket)
