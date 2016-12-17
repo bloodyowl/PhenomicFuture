@@ -19,8 +19,12 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        loader: "style!css",
-      }
+        loaders: [
+          process.env.NODE_ENV !== "production" && "style",
+          "css"
+        ]
+          .filter(_ => _),
+      },
     ],
   },
   plugins: [

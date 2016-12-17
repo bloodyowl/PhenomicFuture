@@ -18,6 +18,7 @@ const QueryString = require("../utils/QueryString")
 
 const Document = require(path.join(process.cwd(), "examples", "container/Document.js"))
 const buildURL = require("../utils/buildURL")
+const createSitemap = require("../seo/sitemap")
 
 const files = []
 
@@ -80,35 +81,42 @@ require("../client/app.server")
           ...urls,
         ])
       )
-      .then(json =>
-        Promise.all(json.map(url => {
-          return prerender(url)
-            .then(rendered => {
-              return Promise.all([
-                writeFile(
-                  path.join(process.cwd(), "dist", "." + rendered.url, "index.html"),
-                  `<!DOCTYPE html>${
-                      ReactDOMServer.renderToStaticMarkup(
-                        <Document body={getDOMRoot(rendered.value)} state={rendered.state} />
+      .then(json => {
+        return Promise.all([
+          Promise.all(json.map(url => {
+            return prerender(url)
+              .then(rendered => {
+                return Promise.all([
+                  writeFile(
+                    path.join(process.cwd(), "dist", "." + rendered.url, "index.html"),
+                    `<!DOCTYPE html>${
+                        ReactDOMServer.renderToStaticMarkup(
+                          <Document body={getDOMRoot(rendered.value)} state={rendered.state} />
+                        )
+                      }`
+                  ),
+                  ...Object.keys(rendered.state)
+                    .map(key => {
+                      const config = QueryString.decode(key)
+                      return writeFile(
+                        toStaticURL(config),
+                        JSON.stringify(rendered.state[key].value)
                       )
-                    }`
-                ),
-                ...Object.keys(rendered.state)
-                  .map(key => {
-                    const config = QueryString.decode(key)
-                    return writeFile(
-                      toStaticURL(config),
-                      JSON.stringify(rendered.state[key].value)
-                    )
-                  })
-              ])
-            })
-            .catch((err) => {
-              console.error(`Error rendering ${ url }`)
-              console.error(err)
-            })
-        }))
-      )
+                    })
+                ])
+              })
+              .catch((err) => {
+                console.error(`Error rendering ${ url }`)
+                console.error(err)
+              })
+          })),
+          createSitemap(json)
+            .then(xml => writeFile(
+              path.join(process.cwd(), "dist/sitemap.xml"),
+              xml
+            ))
+        ])
+      })
       .then(() => {
         console.log("📃 Pre-rendering done " + (Date.now() - lastStamp) + "ms")
         lastStamp = Date.now()

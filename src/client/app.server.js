@@ -1,6 +1,7 @@
 const webpack = require("webpack")
 const path = require("path")
 const config = require(path.join(process.cwd(), "examples", "webpack.config.js"))
+
 const serverConfig = Object.assign({}, config, {
   entry: {
     bundle: path.join(process.cwd(), "examples", "App.js"),
@@ -15,19 +16,17 @@ const serverConfig = Object.assign({}, config, {
   ],
   output: {
     publicPath: "/",
-    path: ".tmp/webpack",
+    path: path.join(process.cwd(), ".tmp/webpack"),
     filename: "[name].js",
     target: "node",
     library: "app",
     libraryTarget: "commonjs2",
   },
   resolve: {
-    /* modulesDirectories: [
-      path.join(process.cwd(), "web_modules"),
-      path.join(process.cwd(), "node_modules"),
-    ], */
+    root: [
+      path.join(process.cwd(), "examples"),
+    ],
   },
-  plugins: [],
 })
 
 module.exports = new Promise((resolve, reject) => {
@@ -37,7 +36,7 @@ module.exports = new Promise((resolve, reject) => {
         console.error(error)
         reject(error)
       } else {
-        resolve(require(".tmp/webpack/bundle"))
+        resolve(require(path.join(process.cwd(), ".tmp/webpack/bundle")))
       }
     })
 })

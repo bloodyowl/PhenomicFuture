@@ -7,14 +7,6 @@ const Document = (props) => (
       {props.head && props.head.title.toComponent()}
       {props.head && props.head.meta.toComponent()}
       {props.head && props.head.link.toComponent()}
-      <style>{`
-        body {
-          margin: 0;
-        }
-        *, *::before, *::after {
-          box-sizing: border-box;
-        }
-      `}</style>
     </head>
     <body>
       <div
