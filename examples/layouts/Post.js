@@ -35,9 +35,9 @@ const Post = (props) => (
 
 module.exports = createContainer(Post, props => ({
   post: {
-    url: `post${ props.location.pathname }`,
+    url: `post${ props.location.pathname.replace(/\/$/, "") }`,
   },
   related: {
-    url: `post-related/2${ props.location.pathname }`,
+    url: `post-related/2${ props.location.pathname.replace(/\/$/, "") }`,
   },
 }))
