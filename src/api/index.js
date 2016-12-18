@@ -5,13 +5,20 @@ const Database = require("../db")
 const server = express()
 
 const mapPostsToMetadata = posts => posts.map(post => ({
+  key: post.value.key,
   title: post.value.title,
   url: "/" + post.value.path,
   authors: post.value.authors,
 }))
 
-const mapAuthorsToMetadata = authors => authors.map(author => author.value)
-const mapTagsToMetadata = tags => tags.map(tags => author.value)
+const mapAuthorsToMetadata = authors => {
+  return authors.map(author => ({
+    key: author.key,
+    username: author.username,
+  }))
+}
+
+const mapTagsToMetadata = tags => tags.map(tag => tag)
 
 const mapPageToMetadata = pages => posts.map(page => ({
   url: "/" + page.value.path,
@@ -87,6 +94,31 @@ server.get("/api/post/*.json", (req, res) => {
     )
 })
 
+server.get("/api/post-related/:limit/*.json", (req, res) => {
+  Database.get("posts", req.params[0])
+    .then(post => {
+      return Promise.all([
+        ...post.value.tags.map(tag => Database.getPostsByTag(tag).catch(error => [])),
+        Database.getPostList({ limit: parseInt(req.params.limit) + 1 })
+      ])
+        .then(lists => lists.reduce((acc, list) => acc.concat(list), []))
+        .then(list => list.filter(item => item.value.path !== post.value.path))
+        .then(list => {
+          if(list.length < parseInt(req.params.limit)) {
+            return null
+          } else {
+            return mapPostsToMetadata(list.slice(0, parseInt(req.params.limit)))
+          }
+        })
+    })
+    .then(
+      tags => res.json(tags),
+      error => {
+        res.status(404).end()
+      }
+    )
+})
+
 server.get("/api/authors.json", (req, res) => {
   Database.getAuthorList()
     .then(
@@ -114,8 +146,8 @@ server.get("/api/authors/:limit/:after.json", (req, res) => {
 server.get("/api/author/*.json", (req, res) => {
   Database.get("authors", req.params[0])
     .then(
-      author => res.json(author),
-      error => res.status(404).end()
+      author => res.json(author.value),
+      error =>  res.status(404).end()
     )
 })
 
@@ -167,24 +199,24 @@ server.get("/api/tags/:limit/:after.json", (req, res) => {
     )
 })
 
-server.get("/api/tag/*.json", (req, res) => {
-  Database.getPostsByTag(req.params[0])
+server.get("/api/tag/:tag.json", (req, res) => {
+  Database.getPostsByTag(req.params.tag)
     .then(
       posts => res.json(connect(posts, mapPostsToMetadata(posts))),
       error => res.status(404).end()
     )
 })
 
-server.get("/api/tag/:limit.json", (req, res) => {
-  Database.getPostsByTag(req.params[0], { limit: parseInt(req.params.limit) + 1 })
+server.get("/api/tag/:tag/:limit.json", (req, res) => {
+  Database.getPostsByTag(req.params.tag, { limit: parseInt(req.params.limit) + 1 })
     .then(
       posts => res.json(connect(posts, mapPostsToMetadata(posts), parseInt(req.params.limit))),
       error => res.status(404).end()
     )
 })
 
-server.get("/api/tag/:limit/:after.json", (req, res) => {
-  Database.getPostsByTag(req.params[0], { limit: parseInt(req.params.limit) + 1, gt: new Buffer(req.params.after, "base64").toString() })
+server.get("/api/tag/:tag/:limit/:after.json", (req, res) => {
+  Database.getPostsByTag(req.params.tag, { limit: parseInt(req.params.limit) + 1, gt: new Buffer(req.params.after, "base64").toString() })
     .then(
       posts => res.json(connect(posts, mapPostsToMetadata(posts), parseInt(req.params.limit))),
       error => res.status(404).end()

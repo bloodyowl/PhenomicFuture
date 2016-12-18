@@ -4,7 +4,8 @@ title: "Les utilitaires en ligne de commande"
 tags:
   - cli
   - npm
-  - iojs/nodejs
+  - iojs
+  - nodejs
 authors:
   - magsout
 ---

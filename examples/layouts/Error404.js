@@ -1,4 +1,5 @@
 const React = require("react")
+const createContainer = require("../../src/client/createContainer")
 
 const Error404 = (props) => (
   <div>
@@ -6,4 +7,4 @@ const Error404 = (props) => (
   </div>
 )
 
-module.exports = Error404
+module.exports = createContainer(Error404, () => ({}))

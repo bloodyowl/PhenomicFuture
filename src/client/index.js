@@ -14,7 +14,7 @@ const clientFetch = (a) => {
 }
 
 const initialStateNode = document.getElementById("Hydration")
-const store = createStore(initialStateNode ? JSON.parse(initialStateNode.textContent) : null)
+const store = createStore(initialStateNode && initialStateNode.textContent ? JSON.parse(initialStateNode.textContent) : null)
 
 ReactDOM.render(
   <Provider

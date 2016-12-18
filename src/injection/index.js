@@ -4,10 +4,14 @@ const frontMatter = require("front-matter")
 const marked = require("marked")
 const path = require("path")
 
+const deburr = require("lodash.deburr")
+const kebabCase = require("lodash.kebabcase")
+
 const Injection = {
   injectAuthor : file => {
     const author = JSON.parse(file.contents)
-    return Database.put("authors", file.name, author)
+    author.username = path.basename(file.name, ".json")
+    return Database.put("authors", author.username, author)
   },
   injectPage : file => {
     const front = frontMatter(file.contents)
@@ -41,12 +45,13 @@ const Injection = {
         " did not."
       )
     }
+    front.attributes.tags = front.attributes.tags.map(tag => kebabCase(deburr(tag)))
     const postPath = parsed.path || path.join(path.dirname(file.name), file.name.endsWith("index.md") ? "" : path.basename(file.name, ".md"))
     return Promise.all([
       Database.put(
         "post-dates",
         front.attributes.date + "-" + postPath,
-        postPath
+        { value: postPath }
       ),
       Database.put(
         "posts",
@@ -57,21 +62,21 @@ const Injection = {
         Database.put(
           ["posts-by-author", author],
           front.attributes.date + "-" + postPath,
-          postPath
+          { value: postPath }
         )
       ),
       ...front.attributes.tags.map(tag =>
         Database.put(
           ["posts-by-tags", tag],
           front.attributes.date + "-" + postPath,
-          postPath
+          { value: postPath }
         )
       ),
       ...front.attributes.tags.map(tag =>
         Database.put(
           "tags",
           tag,
-          true
+          {}
         )
       ),
     ])

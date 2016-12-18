@@ -58,6 +58,7 @@ const createContainer = (Component, getQueries) => {
       }
       return (
         <Component
+          {...this.props}
           isLoading={isLoading}
           {...props}
         />

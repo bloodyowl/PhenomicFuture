@@ -14,6 +14,7 @@ const destruction = new Promise((resolve, reject) => {
 
 const db = subLevel(levelUp(".tmp/db"))
 const options = { valueEncoding: "json" }
+const wrapStreamConfig = config => Object.assign({}, config, options)
 
 const getSublevel = (db, sub) => {
   if(!Array.isArray(sub)) {
@@ -25,12 +26,12 @@ const getSublevel = (db, sub) => {
 const Database = {
   put(sub, key, value) {
     return new Promise((resolve, reject) => {
-      return getSublevel(db, sub).put(key, value, options, (error) => {
+      return getSublevel(db, sub).put(key, Object.assign({}, value, { key }), options, (error) => {
         if(error) {
           reject(error)
           return
         } else {
-          resolve(value)
+          resolve(Object.assign({}, value, { key }))
         }
       })
     })
@@ -50,10 +51,10 @@ const Database = {
   getPostList(config) {
     return new Promise((resolve, reject) => {
       const array = []
-      db.sublevel("post-dates").createReadStream(config)
+      db.sublevel("post-dates").createReadStream(wrapStreamConfig(config))
         .on("data", function (data) {
           array.push(
-            Database.get("posts", JSON.parse(data.value)).then(post => ({ value: post.value, key: data.key }))
+            Database.get("posts", data.value.value).then(post => ({ value: post.value, key: data.key }))
           )
         })
         .on("end", () => {
@@ -68,7 +69,7 @@ const Database = {
   getAuthorList(config) {
     return new Promise((resolve, reject) => {
       const array = []
-      db.sublevel("authors").createReadStream(config)
+      getSublevel(db, "authors").createReadStream(wrapStreamConfig(config))
         .on("data", function (data) {
           array.push(data.value)
         })
@@ -83,10 +84,10 @@ const Database = {
   getPostsByAuthor(author, config) {
     return new Promise((resolve, reject) => {
       const array = []
-      getSublevel(db, ["posts-by-author", author]).createReadStream(config)
+      getSublevel(db, ["posts-by-author", author]).createReadStream(wrapStreamConfig(config))
         .on("data", function (data) {
           array.push(
-            Database.get("posts", JSON.parse(data.value)).then(post => ({ value: post.value, key: data.key }))
+            Database.get("posts", data.value.value).then(post => ({ value: post.value, key: data.key }))
           )
         })
         .on("end", () => {
@@ -101,10 +102,10 @@ const Database = {
   getPostsByTag(tag, config) {
     return new Promise((resolve, reject) => {
       const array = []
-      getSublevel(db, ["posts-by-tags", tag]).createReadStream(config)
+      getSublevel(db, ["posts-by-tags", tag]).createReadStream(wrapStreamConfig(config))
         .on("data", function (data) {
           array.push(
-            Database.get("posts", JSON.parse(data.value)).then(post => ({ value: post.value, key: data.key }))
+            Database.get("posts", data.value.value).then(post => ({ value: post.value, key: data.key }))
           )
         })
         .on("end", () => {
@@ -119,7 +120,7 @@ const Database = {
   getPages(config) {
     return new Promise((resolve, reject) => {
       const array = []
-      db.sublevel("pages").createReadStream(config)
+      db.sublevel("pages").createReadStream(wrapStreamConfig(config))
         .on("data", function (data) {
           array.push(data.key)
         })
@@ -134,9 +135,9 @@ const Database = {
   getTagList(config) {
     return new Promise((resolve, reject) => {
       const array = []
-      db.sublevel("tags").createReadStream(config)
+      db.sublevel("tags").createReadStream(wrapStreamConfig(config))
         .on("data", function (data) {
-          array.push(data.key)
+          array.push(data.value)
         })
         .on("end", () => {
           resolve(array)

@@ -20,7 +20,7 @@ module.exports = {
       {
         test: /\.css$/,
         loaders: [
-          process.env.NODE_ENV !== "production" && "style",
+          // process.env.NODE_ENV !== "production" && "style",
           "css"
         ]
           .filter(_ => _),

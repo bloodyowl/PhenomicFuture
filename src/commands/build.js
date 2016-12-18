@@ -20,7 +20,7 @@ const Document = require(path.join(process.cwd(), "examples", "container/Documen
 const buildURL = require("../utils/buildURL")
 const createSitemap = require("../seo/sitemap")
 const createRSS = require("../seo/feed")
-
+const resolveURLsToPrerender = require("../prerender/resolve")
 const files = []
 
 console.log("⚡️ Hey! Let's get on with it")
@@ -28,136 +28,115 @@ let lastStamp = Date.now()
 
 require("rimraf").sync("dist")
 
-require("../client/app.server")
-  .then(app => {
-    console.log("📦 Webpack server side done "  + (Date.now() - lastStamp) + "ms")
-    lastStamp = Date.now()
-    return app
-  })
-  .then(app => {
-    return new Promise(resolve => watch({
-      path: path.join(process.cwd(), "./examples/content"),
-      onFile: file => files.push(processFile(file)),
-      onFirstBatch: client => {
-        Promise.all(files).then(resolve)
-        console.log("📝 Got your content " + (Date.now() - lastStamp) + "ms")
-        lastStamp = Date.now()
-        client.end()
-      },
-    }))
-      .then(() => app)
-  })
-  .then(app => {
-    const matches = app.props.children.filter(child => child.props.pattern)
-    const toURL = buildURL("http://localhost:1414/api/")
-    const fetch = (a) => {
-      const json = nodeFetch(toURL(a))
-        .then(res => res.json())
-      return json
-    }
+async function getContent () {
+  return new Promise(resolve => watch({
+    path: path.join(process.cwd(), "./examples/content"),
+    onFile: file => files.push(processFile(file)),
+    onFirstBatch: client => {
+      Promise.all(files).then(resolve)
+      client.end()
+    },
+  }))
+}
 
-    const toStaticURL = buildURL(path.join(process.cwd(), "dist/api/"))
+function getRoutes(app) {
+  return React.Children.toArray(app.props.children)
+    .filter(child => child.props.forEach || child.props.pattern)
+}
 
-    const getPages = () => {
-      const paginated = matches.filter(match => match.props.paginated)
-      const queries = paginated
-        .map(match => match.props.component.getQueries({ params: {} }))
-        .map(spec => spec[Object.keys(spec).find(key => spec[key].hasOwnProperty("after"))])
-      const urls = matches.filter(match => !match.props.paginated).map(match => match.props.pattern)
-      const fetchNextURL = (pattern, query) => {
-        urls.push(pattern.replace("/:after?", query.after ? "/" + query.after : ""))
-        return fetch(query)
-          .then(res => res.hasNextPage ? fetchNextURL(pattern, Object.assign({}, query, { after: res.next })) : null)
-      }
-      return Promise.all(paginated.map((match, index) => fetchNextURL(match.props.pattern, queries[index])))
-        .then(() => urls)
-    }
-    const posts = nodeFetch("http://localhost:1414/api/posts.json")
-      .then(res => res.json())
+function createFetchFunction() {
+  const toURL = buildURL("http://localhost:1414/api/")
+  return url => nodeFetch(toURL(url)).then(res => res.json())
+}
 
-    Promise.all([
-      posts
-        .then(json => getPages()
-          .then(urls => [
-            ...json.list.map(item => item.url),
-            ...urls,
-          ])
-        )
-        .then(json => {
-          return Promise.all([
-            Promise.all(json.map(url => {
-              return prerender(url)
-                .then(rendered => {
-                  return Promise.all([
-                    writeFile(
-                      path.join(process.cwd(), "dist", "." + rendered.url, "index.html"),
-                      `<!DOCTYPE html>${
-                          ReactDOMServer.renderToStaticMarkup(
-                            <Document body={getDOMRoot(rendered.value)} state={rendered.state} />
-                          )
-                        }`
-                    ),
-                    ...Object.keys(rendered.state)
-                      .map(key => {
-                        const config = QueryString.decode(key)
-                        return writeFile(
-                          toStaticURL(config),
-                          JSON.stringify(rendered.state[key].value)
-                        )
-                      })
-                  ])
-                })
-                .catch((err) => {
-                  console.error(`Error rendering ${ url }`)
-                  console.error(err)
-                })
-            })),
-            createSitemap(json)
-              .then(xml => writeFile(
-                path.join(process.cwd(), "dist/sitemap.xml"),
-                xml
-              ))
-          ])
-        }),
-        posts
-          .then(posts => Promise.all(
-            posts.list
-              .map(item => (
-                nodeFetch(`http://localhost:1414/api/post${ item.url }.json`)
-                  .then(res => res.json())
-              ))
-          ))
-          .then(posts => createRSS(posts)
-            .then(xml => writeFile(
-              path.join(process.cwd(), "dist/feed.xml"),
-              xml
-            ))
-          )
-      ])
-      .then(() => {
-        console.log("📃 Pre-rendering done " + (Date.now() - lastStamp) + "ms")
-        lastStamp = Date.now()
-      })
-      .then(() => {
-        return new Promise((resolve, reject) => {
-          webpack(require(path.join(process.cwd(), "examples", "webpack.config.js")))
-            .run(function(error, stats) {
-              if(error) {
-                reject(error)
-              } else {
-                console.log("📦 Webpack built " + (Date.now() - lastStamp) + "ms")
-                lastStamp = Date.now()
-                resolve()
-              }
-            })
-        })
-      })
-      .catch(err => {
-        console.error(err)
-        process.exit(1)
-      })
-      .then(() => {
-        console.log("🚀 Ready to ship!")
-        process.exit(0)
+function wrapHTMLPage (rendered) {
+  return (
+    `<!DOCTYPE html>` +
+    ReactDOMServer.renderToStaticMarkup(
+      <Document
+        body={getDOMRoot(rendered.value)}
+        state={rendered.state}
+      />
+    )
+  )
+}
+
+const toStaticURL = buildURL(path.join(process.cwd(), "dist/api/"))
+
+async function prerenderFileAndDependencies (app, fetch, url) {
+  const rendered = await prerender(app, fetch, url)
+  return Promise.all([
+    writeFile(path.join(process.cwd(), "dist", rendered.url, "index.html"), wrapHTMLPage(rendered)),
+    ...Object.keys(rendered.state).map(key => {
+      return writeFile(toStaticURL(QueryString.decode(key)), JSON.stringify(rendered.state[key].value))
+    })
+  ])
+}
+
+async function renderSitemap (urls) {
+  const xml = await createSitemap(urls)
+  return writeFile(
+    path.join(process.cwd(), "dist/sitemap.xml"),
+    xml
+  )
+}
+
+async function renderFeed (fetch) {
+  const posts = await fetch({ url: "posts" })
+  const fullPosts = await posts.list.map(post => fetch({ url: `post${ post.url }` }))
+  const xml = await createRSS(fullPosts)
+  return writeFile(
+    path.join(process.cwd(), "dist/feed.xml"),
+    xml
+  )
+}
+
+function buildWebpack() {
+  return new Promise((resolve, reject) => {
+    webpack(require(path.join(process.cwd(), "examples", "webpack.config.js")))
+      .run(function(error, stats) {
+        if(error) {
+          reject(error)
+        } else {
+          resolve()
+        }
       })
   })
+}
+
+async function build() {
+  // Build webpack
+  const app = await require("../client/app.server")
+  console.log("📦 Webpack server side done "  + (Date.now() - lastStamp) + "ms")
+  lastStamp = Date.now()
+  // Retreive content
+  await getContent()
+  console.log("📝 Got your content " + (Date.now() - lastStamp) + "ms")
+  lastStamp = Date.now()
+
+  const fetch = createFetchFunction()
+  const urls = await resolveURLsToPrerender(getRoutes(app), fetch)
+  await Promise.all(urls.map(url => prerenderFileAndDependencies(app, fetch, url)))
+  await renderSitemap(urls)
+  await renderFeed(fetch)
+  console.log("📃 Pre-rendering done " + (Date.now() - lastStamp) + "ms")
+  lastStamp = Date.now()
+
+  await buildWebpack()
+  console.log("📦 Webpack built " + (Date.now() - lastStamp) + "ms")
+  lastStamp = Date.now()
+}
+
+build()
+  .catch(err => {
+    console.error(err)
+    process.exit(1)
+  })
+  .then(() => {
+    console.log("🚀 Ready to ship!")
+    process.exit(0)
+  })
+
+process.on("uncaughtException", function (err) {
+  console.log(err)
+})

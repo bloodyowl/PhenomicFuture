@@ -11,42 +11,37 @@ const createServerRenderContext = require("react-router/createServerRenderContex
 const isContainer = component => component.__isContainer === true
 const nodeFetch = require("node-fetch")
 
-const app = require("../client/app.server")
-
-const prerender = url => {
-  return app.then(app => new Promise((resolve, reject) => {
-    const toURL = buildURL("http://localhost:1414/api/")
-    const fetch = (a) => {
-      const json = nodeFetch(toURL(a))
-        .then(res => res.json())
-      return json
-    }
-
+async function prerender (app, fetch, url) {
+  return new Promise((resolve, reject) => {
     const store = createStore()
     const context = createServerRenderContext()
 
     const render = () => {
-      resolve({
-        url,
-        state: store.getState(),
-        value: ReactDOMServer.renderToString(
-          <Provider fetch={fetch} store={store}>
-            <ServerRouter context={context} location={url}>
-              {app}
-            </ServerRouter>
-          </Provider>
-        ),
-      })
+      try {
+        resolve({
+          url,
+          state: store.getState(),
+          value: ReactDOMServer.renderToString(
+            <Provider fetch={fetch} store={store}>
+              <ServerRouter context={context} location={`/${ url }`}>
+                {app}
+              </ServerRouter>
+            </Provider>
+          ),
+        })
+      } catch(error) {
+        reject(error)
+      }
     }
 
     ReactDOMServer.renderToString(
       <Provider fetch={fetch} store={store} onFetched={render} isPrerendering>
-        <ServerRouter context={context} location={url}>
+        <ServerRouter context={context} location={`/${ url }`}>
           {app}
         </ServerRouter>
       </Provider>
     )
-  }))
+  })
 }
 
 module.exports = prerender

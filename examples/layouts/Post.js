@@ -1,6 +1,8 @@
 const React = require("react")
 const createContainer = require("../../src/client/createContainer")
 
+const Link = require("react-router/Link").default
+
 const Post = (props) => (
   <div>
     {props.isLoading &&
@@ -14,6 +16,18 @@ const Post = (props) => (
         <div
           dangerouslySetInnerHTML={{ __html: props.post.content }}
         />
+        {Array.isArray(props.related) &&
+          <div>
+            <h2>You might also like</h2>
+            {props.related.map(item =>
+              <div key={item.url}>
+                <Link to={item.url}>
+                  {item.title}
+                </Link>
+              </div>
+            )}
+          </div>
+        }
       </div>
     }
   </div>
@@ -21,6 +35,9 @@ const Post = (props) => (
 
 module.exports = createContainer(Post, props => ({
   post: {
-    url: `post${ props.location.pathname }`
+    url: `post${ props.location.pathname }`,
+  },
+  related: {
+    url: `post-related/2${ props.location.pathname }`,
   },
 }))
