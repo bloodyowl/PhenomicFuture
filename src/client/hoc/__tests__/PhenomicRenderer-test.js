@@ -1,4 +1,4 @@
-const PhenomicRenderer = require("../PhenomicRenderer")
+const PhenomicRenderer = require("../Renderer")
 const React = require("react")
 const renderer = require("react-test-renderer")
 
