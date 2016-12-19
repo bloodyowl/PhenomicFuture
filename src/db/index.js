@@ -3,17 +3,8 @@ const levelDown = require("leveldown")
 const subLevel = require("level-sublevel")
 const mapValues = require("../utils/mapValues")
 
-const destruction = new Promise((resolve, reject) => {
-  levelDown.destroy(".tmp/db", (error) => {
-    if(error) {
-      reject(error)
-    } else {
-      resolve()
-    }
-  })
-})
-
-const level = subLevel(levelUp(".tmp/db"))
+const database = levelUp(".tmp/db")
+const level = subLevel(database)
 const options = { valueEncoding: "json" }
 const wrapStreamConfig = config => Object.assign({}, config, options)
 
@@ -54,6 +45,21 @@ async function getDataRelations (fields) {
 }
 
 const db = {
+  destroy() {
+    return new Promise((resolve, reject) => {
+      database.close(() => {
+        levelDown.destroy(".tmp/db", (error) => {
+          if(error) {
+            reject(error)
+          } else {
+            database.open(() => {
+              resolve()
+            })
+          }
+        })
+      })
+    })
+  },
   put(sub, key, value) {
     return new Promise((resolve, reject) => {
       const data = { ...value, key }
@@ -123,9 +129,4 @@ const db = {
   }
 }
 
-module.exports = mapValues(db, (method) => {
-  return async function (...args) {
-    await destruction
-    return method(...args)
-  }
-})
+module.exports = db

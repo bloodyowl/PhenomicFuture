@@ -23,6 +23,7 @@ const serverConfig = Object.assign({}, config, {
     libraryTarget: "commonjs2",
   },
   resolve: {
+    ...config.resolve,
     root: [
       path.join(process.cwd(), "examples"),
     ],

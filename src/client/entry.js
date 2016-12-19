@@ -8,8 +8,10 @@ const Provider = require("./hoc/Provider")
 const createStore = require("./store")
 const buildURL = require("../utils/buildURL")
 
+require("isomorphic-fetch")
+
 function createFetchFunction() {
-  const toURL = buildURL("/api")
+  const toURL = buildURL("/phenomic")
   return url => fetch(toURL(url)).then(res => res.json())
 }
 

@@ -3,6 +3,7 @@ const createContainer = require("../../src/client/hoc/Container")
 const query = require("../../src/client/query")
 
 const Link = require("react-router/Link").default
+const TagList = require("./TagList")
 
 const PostList = (props) => (
   <div>
@@ -25,6 +26,12 @@ const PostList = (props) => (
             next
           </Link>
         }
+        <h2>Tags</h2>
+        {props.tags.list.map(tag => 
+          <span key={tag.id}>
+            {tag.id + " "}
+          </span>
+        )}
       </div>
     }
   </div>
@@ -35,5 +42,9 @@ module.exports = createContainer(PostList, props => ({
     collection: "posts",
     limit: 20,
     after: props.params.after,
+  }),
+  tags: query({
+    collection: "tags",
+    order: "asc",
   }),
 }))

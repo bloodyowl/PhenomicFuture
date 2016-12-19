@@ -16,12 +16,14 @@ const db = require("../db")
 console.log("🌍 Hey! Let's hack things a bit")
 let lastStamp = Date.now()
 
+const io = require("socket.io")(1415)
+
 server.use(webpackDevMiddleware(
   webpack(require(path.join(process.cwd(), "examples", "webpack.config.js"))),
   { noInfo: true }
 ))
 
-const Document = require(path.join(process.cwd(), "examples", "container/Document.js"))
+const Document = require(path.join(process.cwd(), "examples", "Document.js"))
 
 server.get("*", (req, res) => {
   res.type('.html')
@@ -33,8 +35,10 @@ server.get("*", (req, res) => {
 
 const watcher = createWatcher({ path: path.join(process.cwd(), "./examples/content") })
 
-watcher.onChange(files => {
-  files.forEach(file => processFile(db, file))
+watcher.onChange(async function (files) {
+  await db.destroy()
+  await Promise.all(files.map(file => processFile(db, file)))
+  io.emit("change")
 })
 
 console.log("✨ Open http://localhost:1414 " + (Date.now() - lastStamp) + "ms")

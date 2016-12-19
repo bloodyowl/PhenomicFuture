@@ -1,0 +1,9 @@
+body {
+  font-family: sans-serif;
+  background: #fafafa;
+  margin: 0;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}

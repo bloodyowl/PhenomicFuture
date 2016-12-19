@@ -16,7 +16,7 @@ const writeFile = require("../utils/writeFile")
 const getDOMRoot = require("../utils/getDOMRoot")
 const QueryString = require("../utils/QueryString")
 
-const Document = require(path.join(process.cwd(), "examples", "container/Document.js"))
+const Document = require(path.join(process.cwd(), "examples", "Document.js"))
 const buildURL = require("../utils/buildURL")
 const createSitemap = require("../seo/sitemap")
 const createRSS = require("../seo/feed")
@@ -33,10 +33,15 @@ require("rimraf").sync("dist")
 async function getContent (db) {
   return new Promise((resolve, reject) => {
     const watcher = createWatcher({ path: path.join(process.cwd(), "./examples/content") })
-    watcher.onChange(files => {
+    watcher.onChange(async function (files) {
       watcher.close()
-      Promise.all(files.map(file => processFile(db, file)))
-        .then(resolve, reject)
+      await db.destroy()
+      try {
+        await Promise.all(files.map(file => processFile(db, file)))
+        resolve()
+      } catch(error) {
+        reject(error)
+      }
     })
   })
 }
@@ -47,7 +52,7 @@ function getRoutes(app) {
 }
 
 function createFetchFunction() {
-  const toURL = buildURL("http://localhost:1414/api")
+  const toURL = buildURL("http://localhost:1414/phenomic")
   return url => {
     return nodeFetch(toURL(url)).then(res => res.json())
   }
@@ -65,7 +70,7 @@ function wrapHTMLPage (rendered) {
   )
 }
 
-const toStaticURL = buildURL(path.join(process.cwd(), "dist/api"))
+const toStaticURL = buildURL(path.join(process.cwd(), "dist/phenomic"))
 
 async function prerenderFileAndDependencies (app, fetch, url) {
   const rendered = await prerender(app, fetch, url)

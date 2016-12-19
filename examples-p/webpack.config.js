@@ -20,7 +20,7 @@ module.exports = {
       {
         test: /\.css$/,
         loaders: [
-          process.env.NODE_ENV !== "production" && "style",
+          // process.env.NODE_ENV !== "production" && "style",
           "css"
         ]
           .filter(_ => _),
@@ -34,9 +34,4 @@ module.exports = {
     process.env.NODE_ENV === "production" && new webpack.optimize.OccurrenceOrderPlugin(),
     process.env.NODE_ENV === "production" && new webpack.optimize.UglifyJsPlugin(),
   ].filter(item => item),
-  resolve: {
-    alias: {
-      "react-native": "react-native-web",
-    },
-  },
 }

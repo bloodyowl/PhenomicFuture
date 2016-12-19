@@ -4,6 +4,12 @@ const kebabCase = require("lodash.kebabcase")
 const frontMatter = require("front-matter")
 const marked = require("marked")
 
+marked.setOptions({
+  highlight (code) {
+    return require('highlight.js').highlightAuto(code).value
+  },
+})
+
 async function transformFile (file, contents) {
   switch(path.extname(file.name)) {
     case ".md":

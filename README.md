@@ -5,7 +5,7 @@ $ npm run build # generates all the files
 
 ## todo:
 
-- add tests & flow
-- db invalidation
-- post hot-reload (HoC/websocket)
+- add support for CSS-in-JS with react-native-web
+- add granular loading (edges & nodes)
+- add flow
 - good dx

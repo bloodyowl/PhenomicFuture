@@ -96,7 +96,7 @@ api.get("/:collection/item/*.json", async function (req, res) {
 
 
 const server = express()
-server.use("/api", api)
+server.use("/phenomic", api)
 server.listen(1414)
 
 module.exports = server

@@ -33,7 +33,7 @@ function createStore (state = {}) {
     update({
       [key]: {
         status: "loading",
-        node: null,
+        node: get(key).node,
       },
     })
   }

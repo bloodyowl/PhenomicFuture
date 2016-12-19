@@ -17,6 +17,7 @@ function createContainer(Component, getQueries = defaultGetQueries) {
       if(this.context.__prerendering) {
         this.query()
       }
+      this.forceQuery = this.forceQuery.bind(this)
     }
 
     componentDidMount() {
@@ -24,11 +25,23 @@ function createContainer(Component, getQueries = defaultGetQueries) {
         this.query()
       }
       this.unsubscribe = this.context.store.subscribe(() => this.update())
+      if(process.env.NODE_ENV !== "production") {
+        require("socket.io-client")("http://localhost:1415")
+          .on("change", this.forceQuery)
+      }
+    }
+
+    forceQuery() {
+      this.query(true)
     }
 
     componentWillUnmount() {
       this.unsubscribe()
       this.unsubscribe = null
+      if(process.env.NODE_ENV !== "production") {
+        require("socket.io-client")("http://localhost:1415")
+          .removeListener("change", this.forceQuery)
+      }
     }
 
     componentWillReceiveProps(props) {
@@ -52,16 +65,20 @@ function createContainer(Component, getQueries = defaultGetQueries) {
       this.queries = mapValues(getQueries(props), value => QueryString.encode(value))
     }
 
-    query() {
+    query(force) {
       const store = this.context.store
       const values = Object.keys(this.queries).map(key => this.queries[key])
-      this.context.query(values.filter(item => store.get(item).status !== "idle"))
+      if(force) {
+        this.context.query(values)
+      } else {
+        this.context.query(values.filter(item => store.get(item).status !== "idle"))
+      }
     }
 
     render() {
       const store = this.context.store
       const values = Object.keys(this.queries).map(key => this.queries[key])
-      const isLoading = values.some(item => store.get(item).status !== "idle")
+      const isLoading = values.some(item => !store.get(item).node)
       const hasErrored = values.some(item => store.get(item).status === "error")
       const props = mapValues(this.queries, (value, key) => store.get(this.queries[key]).node)
       if(hasErrored) {

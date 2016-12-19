@@ -1,17 +1,16 @@
-const React = require("react")
-const Match = require("react-router/Match").default
-const Miss = require("react-router/Miss").default
-const Link = require("react-router/Link").default
+import React from "react"
+import Match from "react-router/Match"
+import Miss from "react-router/Miss"
+import Link from "react-router/Link"
 
-const Author = require("./layouts/Author")
-const PostList = require("./layouts/PostList")
-const Post = require("./layouts/Post")
-const Home = require("./layouts/Home")
-const Error404 = require("./layouts/Error404")
-const TagList = require("./layouts/TagList")
-const TagPostList = require("./layouts/TagPostList")
-const PageList = require("./layouts/PageList")
-const Page = require("./layouts/Page")
+import Header from "./components/Header"
+import Home from "./components/Home"
+import DocPage from "./components/DocPage"
+import APIPage from "./components/APIPage"
+import APIListPage from "./components/APIListPage"
+import ChangelogPage from "./components/ChangelogPage"
+import ChangelogListPage from "./components/ChangelogListPage"
+import ShowcaseList from "./components/ShowcaseList"
 
 const PhenomicRenderer = require("../src/client/hoc/Renderer")
 
@@ -19,17 +18,13 @@ require("./defaults.css")
 
 module.exports = (
   <PhenomicRenderer>
-    <Link to="/" activeOnlyWhenExact activeStyle={{ color: "red" }}>
-      <h1 style={{ background: "#ccc", margin: 0 }}>Putain de code</h1>
-    </Link>
+    <Header />
     <Match exactly pattern="/" component={Home} />
-    <Match exactly pattern="/post-list/:after?" paginated component={PostList} />
-    <Match exactly pattern="/author/:key/:after?" paginated component={Author} collection="authors" />
-    <Match exactly pattern="/tags" component={TagList} />
-    <Match exactly pattern="/tag/:key/:after?" paginated component={TagPostList} collection="tags" />
-    <Match exactly pattern="/pages/:after?" paginated component={PageList} />
-    <Match exactly pattern="/404.html" component={Error404} />
-    <Match exactly pattern="/post/*" component={Post} collection="posts" />
-    <Miss component={Page} collection="pages" />
+    <Match exactly pattern="/api" component={APIListPage} />
+    <Match exactly pattern="/api/*" component={APIPage} collection="api" />
+    <Match exactly pattern="/changelog/*" component={ChangelogPage} collection="changelog" />
+    <Match exactly pattern="/changelog" component={ChangelogListPage} />
+    <Match exactly pattern="/docs/*" component={DocPage} collection="docs" />
+    <Match exactly pattern="/showcase" component={ShowcaseList} collection="showcase" />
   </PhenomicRenderer>
 )
