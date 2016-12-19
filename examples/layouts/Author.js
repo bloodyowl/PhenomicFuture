@@ -1,5 +1,6 @@
 const React = require("react")
 const createContainer = require("../../src/client/createContainer")
+const query = require("../../src/client/query")
 
 const Link = require("react-router/Link").default
 
@@ -18,8 +19,8 @@ const Author = (props) => (
         </pre>
         <ul>
           {props.posts.list.map(post =>
-            <li key={post.url}>
-              <Link to={post.url}>
+            <li key={post.id}>
+              <Link to={"/" + post.id}>
                 {post.title}
               </Link>
             </li>
@@ -36,12 +37,15 @@ const Author = (props) => (
 )
 
 module.exports = createContainer(Author, props => ({
-  author: {
-    url: `author/${ props.params.key }`,
-  },
-  posts: {
-    url: `author-posts/${ props.params.key }`,
+  author: query({
+    collection: "authors",
+    id: props.params.key,
+  }),
+  posts: query({
+    collection: "posts",
+    by: "authors",
+    value: props.params.key,
     limit: 10,
     after: props.params.after,
-  },
+  }),
 }))

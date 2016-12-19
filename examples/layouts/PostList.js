@@ -1,5 +1,6 @@
 const React = require("react")
 const createContainer = require("../../src/client/createContainer")
+const query = require("../../src/client/query")
 
 const Link = require("react-router/Link").default
 
@@ -30,5 +31,9 @@ const PostList = (props) => (
 )
 
 module.exports = createContainer(PostList, props => ({
-  posts: { url: `posts`, limit: 20, after: props.params.after },
+  posts: query({
+    collection: "posts",
+    limit: 20,
+    after: props.params.after,
+  }),
 }))

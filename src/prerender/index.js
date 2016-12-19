@@ -16,7 +16,7 @@ async function prerender (app, fetch, url) {
     const store = createStore()
     const context = createServerRenderContext()
 
-    const render = () => {
+    async function render = () => {
       try {
         resolve({
           url,

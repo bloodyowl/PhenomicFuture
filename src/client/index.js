@@ -8,7 +8,7 @@ const Provider = require("./Provider")
 const createStore = require("./Store")
 const buildURL = require("../utils/buildURL")
 
-const toURL = buildURL("/api/")
+const toURL = buildURL("/api")
 const clientFetch = (a) => {
   return fetch(toURL(a)).then(res => res.json())
 }

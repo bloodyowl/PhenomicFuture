@@ -1,5 +1,6 @@
 const React = require("react")
 const createContainer = require("../../src/client/createContainer")
+const query = require("../../src/client/query")
 
 const Link = require("react-router/Link").default
 
@@ -14,7 +15,7 @@ const Post = (props) => (
           {props.post.title}
         </h1>
         <div
-          dangerouslySetInnerHTML={{ __html: props.post.content }}
+          dangerouslySetInnerHTML={{ __html: props.post.body }}
         />
         {Array.isArray(props.related) &&
           <div>
@@ -34,10 +35,11 @@ const Post = (props) => (
 )
 
 module.exports = createContainer(Post, props => ({
-  post: {
-    url: `post${ props.location.pathname.replace(/\/$/, "") }`,
-  },
-  related: {
+  post: query({
+    collection: "posts",
+    id: props.location.pathname.replace(/^\//, "").replace(/\/$/, ""),
+  }),
+  /* related: {
     url: `post-related/2${ props.location.pathname.replace(/\/$/, "") }`,
-  },
+  }, */
 }))

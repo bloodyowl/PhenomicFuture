@@ -11,6 +11,7 @@ const React = require("react")
 const ReactDOMServer = require("react-dom/server")
 
 const getDOMRoot = require("../dom/getDOMRoot")
+const db = require("../db")
 
 console.log("🌍 Hey! Let's hack things a bit")
 let lastStamp = Date.now()
@@ -32,7 +33,7 @@ server.get("*", (req, res) => {
 
 watch({
   path: path.join(process.cwd(), "./examples/content"),
-  onFile: processFile,
+  onFile: file => processFile(db, file),
   onFirstBatch: () => {
     console.log("✨ Open http://localhost:1414 " + (Date.now() - lastStamp) + "ms")
   },

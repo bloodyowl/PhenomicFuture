@@ -1,9 +1,10 @@
 const levelUp = require("levelup")
+const levelDown = require("leveldown")
 const subLevel = require("level-sublevel")
 const mapValues = require("../utils/mapValues")
 
 const destruction = new Promise((resolve, reject) => {
-  require("leveldown").destroy(".tmp/db", (error) => {
+  levelDown.destroy(".tmp/db", (error) => {
     if(error) {
       reject(error)
     } else {
@@ -12,147 +13,119 @@ const destruction = new Promise((resolve, reject) => {
   })
 })
 
-const db = subLevel(levelUp(".tmp/db"))
+const level = subLevel(levelUp(".tmp/db"))
 const options = { valueEncoding: "json" }
 const wrapStreamConfig = config => Object.assign({}, config, options)
 
-const getSublevel = (db, sub) => {
+function getSublevel (db, sub, filter, filterValue) {
   if(!Array.isArray(sub)) {
     sub = [ sub ]
+  }
+  if(filter) {
+    sub = sub.concat(filter)
+    if(filter !== "default" && filterValue) {
+      sub = sub.concat(filterValue)
+    }
   }
   return sub.reduce((db, name) => db.sublevel(name), db)
 }
 
-const Database = {
+async function getDataRelation (fieldName, keys) {
+  let partial = null
+  try {
+    if(Array.isArray(keys)) {
+      partial = await Promise.all(keys.map(key => db.getPartial(fieldName, key)))
+    } else {
+      partial = await db.getPartial(fieldName, keys)
+    }
+    return partial
+  } catch(error) {
+    return keys
+  }
+}
+
+async function getDataRelations (fields) {
+  const keys = Object.keys(fields)
+  const resolvedValues = await Promise.all(keys.map(key => getDataRelation(key, fields[key])))
+  return keys.reduce((resolvedFields, key, index) => {
+    resolvedFields[key] = resolvedValues[index]
+    return resolvedFields
+  }, {})
+}
+
+const db = {
   put(sub, key, value) {
     return new Promise((resolve, reject) => {
-      return getSublevel(db, sub).put(key, Object.assign({}, value, { key }), options, (error) => {
-        if(error) {
-          reject(error)
-          return
-        } else {
-          resolve(Object.assign({}, value, { key }))
-        }
-      })
+      const data = { ...value, key }
+      const table = getSublevel(level, sub)
+      return getSublevel(level, sub)
+        .put(key, data, options, (error) => {
+          if(error) {
+            reject(error)
+            return
+          } else {
+            resolve(data)
+          }
+        })
     })
   },
   get(sub, key) {
     return new Promise((resolve, reject) => {
-      return getSublevel(db, sub).get(key, options, (error, value) => {
+      return getSublevel(level, sub).get(key, options, async function (error, data) {
         if(error) {
           reject(error)
-          return
         } else {
-          resolve({ key: key, value: value })
+          const { body, ...metadata } = data.data
+          const relatedData = await getDataRelations(metadata)
+          resolve({
+            key: key,
+            value: {
+              ...relatedData,
+              body,
+            },
+          })
         }
       })
     })
   },
-  getPostList(config) {
+  getPartial(sub, key) {
+    return new Promise((resolve, reject) => {
+      return getSublevel(level, sub).get(key, options, (error, data) => {
+        if(error) {
+          reject(error)
+        } else {
+          resolve({ id: key, ...data.partial })
+        }
+      })
+    })
+  },
+  getList(sub, config, filter = "default", filterValue) {
     return new Promise((resolve, reject) => {
       const array = []
-      db.sublevel("post-dates").createReadStream(wrapStreamConfig(config))
-        .on("data", function (data) {
+      getSublevel(level, sub, filter, filterValue).createReadStream(wrapStreamConfig(config))
+        .on("data", async function (data) {
           array.push(
-            Database.get("posts", data.value.value).then(post => ({ value: post.value, key: data.key }))
+            db.getPartial(sub, data.value.id)
+              .then(value => ({
+                ...value,
+                key: data.key,
+              }))
           )
         })
-        .on("end", () => {
-          Promise.all(array)
-            .then(resolve)
+        .on("end", async function () {
+          const returnValue = await Promise.all(array)
+          resolve(returnValue)
         })
         .on("error", (error) => {
           reject(error)
         })
     })
-  },
-  getAuthorList(config) {
-    return new Promise((resolve, reject) => {
-      const array = []
-      getSublevel(db, "authors").createReadStream(wrapStreamConfig(config))
-        .on("data", function (data) {
-          array.push(data.value)
-        })
-        .on("end", () => {
-          resolve(array)
-        })
-        .on("error", (error) => {
-          reject(error)
-        })
-    })
-  },
-  getPostsByAuthor(author, config) {
-    return new Promise((resolve, reject) => {
-      const array = []
-      getSublevel(db, ["posts-by-author", author]).createReadStream(wrapStreamConfig(config))
-        .on("data", function (data) {
-          array.push(
-            Database.get("posts", data.value.value).then(post => ({ value: post.value, key: data.key }))
-          )
-        })
-        .on("end", () => {
-          Promise.all(array)
-            .then(resolve)
-        })
-        .on("error", (error) => {
-          reject(error)
-        })
-    })
-  },
-  getPostsByTag(tag, config) {
-    return new Promise((resolve, reject) => {
-      const array = []
-      getSublevel(db, ["posts-by-tags", tag]).createReadStream(wrapStreamConfig(config))
-        .on("data", function (data) {
-          array.push(
-            Database.get("posts", data.value.value).then(post => ({ value: post.value, key: data.key }))
-          )
-        })
-        .on("end", () => {
-          Promise.all(array)
-            .then(resolve)
-        })
-        .on("error", (error) => {
-          reject(error)
-        })
-    })
-  },
-  getPages(config) {
-    return new Promise((resolve, reject) => {
-      const array = []
-      db.sublevel("pages").createReadStream(wrapStreamConfig(config))
-        .on("data", function (data) {
-          array.push(data.key)
-        })
-        .on("end", () => {
-          resolve(array)
-        })
-        .on("error", (error) => {
-          reject(error)
-        })
-    })
-  },
-  getTagList(config) {
-    return new Promise((resolve, reject) => {
-      const array = []
-      db.sublevel("tags").createReadStream(wrapStreamConfig(config))
-        .on("data", function (data) {
-          array.push(data.value)
-        })
-        .on("end", () => {
-          resolve(array)
-        })
-        .on("error", (error) => {
-          reject(error)
-        })
-    })
-  },
+  }
 }
 
-
-module.exports = mapValues(Database, (method) => {
-  return (a, b, c) => {
-    return destruction
-      .then(() => method(a, b, c))
+module.exports = mapValues(db, (method) => {
+  return async function (...args) {
+    await destruction
+    return method(...args)
   }
 })
