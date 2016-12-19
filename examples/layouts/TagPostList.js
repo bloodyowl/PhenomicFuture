@@ -13,8 +13,8 @@ const TagPostList = (props) => (
       <div>
         <ul>
           {props.posts.list.map(post =>
-            <li key={post.url}>
-              <Link to={post.url}>
+            <li key={post.id}>
+              <Link to={"/" + post.id}>
                 {post.title}
               </Link>
             </li>
