@@ -24,12 +24,12 @@ module.exports = (
     </Link>
     <Match exactly pattern="/" component={Home} />
     <Match exactly pattern="/post-list/:after?" paginated component={PostList} />
-    <Match exactly pattern="/author/:key/:after?" paginated component={Author} forEach="authors" />
+    <Match exactly pattern="/author/:key/:after?" paginated component={Author} collection="authors" />
     <Match exactly pattern="/tags" component={TagList} />
-    <Match exactly pattern="/tag/:key/:after?" paginated component={TagPostList} forEach="tags" />
+    <Match exactly pattern="/tag/:key/:after?" paginated component={TagPostList} collection="tags" />
     <Match exactly pattern="/pages/:after?" paginated component={PageList} />
     <Match exactly pattern="/404.html" component={Error404} />
-    <Match exactly pattern="/post/*" component={Post} forEach="posts" />
-    <Miss component={Page} forEach="pages" />
+    <Match exactly pattern="/post/*" component={Post} collection="posts" />
+    <Miss component={Page} collection="pages" />
   </PhenomicRenderer>
 )

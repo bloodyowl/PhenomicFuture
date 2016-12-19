@@ -1,10 +1,10 @@
 const toQuery = require("../client/query")
 
 const resolveURLsForDynamicParams = async function (fetch, route) {
-  if(!route.props.forEach) {
+  if(!route.props.collection) {
     return route
   }
-  const collection = await fetch(toQuery({ collection: route.props.forEach }))
+  const collection = await fetch(toQuery({ collection: route.props.collection }))
   const pattern = route.props.pattern || "*"
   return collection.list.map(item => {
     return {
