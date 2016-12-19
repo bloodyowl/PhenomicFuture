@@ -1,4 +1,4 @@
-const watch = require("../watch")
+const createWatcher = require("../watch")
 const path = require("path")
 
 const processFile = require("../injection/processFile")
@@ -10,7 +10,7 @@ const webpackDevMiddleware = require("webpack-dev-middleware")
 const React = require("react")
 const ReactDOMServer = require("react-dom/server")
 
-const getDOMRoot = require("../dom/getDOMRoot")
+const getDOMRoot = require("../utils/getDOMRoot")
 const db = require("../db")
 
 console.log("🌍 Hey! Let's hack things a bit")
@@ -31,10 +31,10 @@ server.get("*", (req, res) => {
   res.end(`<!DOCTYPE html>${doc}`)
 })
 
-watch({
-  path: path.join(process.cwd(), "./examples/content"),
-  onFile: file => processFile(db, file),
-  onFirstBatch: () => {
-    console.log("✨ Open http://localhost:1414 " + (Date.now() - lastStamp) + "ms")
-  },
+const watcher = createWatcher({ path: path.join(process.cwd(), "./examples/content") })
+
+watcher.onChange(files => {
+  files.forEach(file => processFile(db, file))
 })
+
+console.log("✨ Open http://localhost:1414 " + (Date.now() - lastStamp) + "ms")

@@ -1,5 +1,5 @@
 const React = require("react")
-const createContainer = require("../../src/client/createContainer")
+const createContainer = require("../../src/client/hoc/Container")
 const query = require("../../src/client/query")
 
 const Link = require("react-router/Link").default
@@ -37,7 +37,7 @@ const Post = (props) => (
 module.exports = createContainer(Post, props => ({
   post: query({
     collection: "posts",
-    id: props.location.pathname.replace(/^\//, "").replace(/\/$/, ""),
+    id: props.params[0],
   }),
   /* related: {
     url: `post-related/2${ props.location.pathname.replace(/\/$/, "") }`,

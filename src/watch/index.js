@@ -8,10 +8,11 @@ const createErrorHandler = client => error => {
   }
 }
 
-const watch = (config) => {
+function createWatcher(config) {
   const client = new watchman.Client()
   const handleError = createErrorHandler()
-  let isFirstBatch = true
+  let subscribers = []
+  let files = {}
 
   client.capabilityCheck({ optional: [], required: ["relative_root"] }, (error) => {
     handleError(error)
@@ -28,22 +29,35 @@ const watch = (config) => {
 
       client.on("subscription", (event) => {
         event.files.forEach(file => {
-          config.onFile({
-            name: file.name,
-            fullpath: path.join(config.path, file.name),
-            exists: file.exists,
-            type: file.type,
-          })
-        })
-        if(isFirstBatch) {
-          isFirstBatch = false
-          if(typeof config.onFirstBatch === "function") {
-            config.onFirstBatch(client)
+          if(files[file.name] && !file.exists) {
+            delete files[file.name]
+          } else {
+            files[file.name] = {
+              name: file.name,
+              fullpath: path.join(config.path, file.name),
+              exists: file.exists,
+              type: file.type,
+            }
           }
-        }
+        })
+        const arrayOfFiles = Object.keys(files).map(key => files[key])
+        subscribers.forEach(func => func(arrayOfFiles))
       })
     })
   })
+
+  return {
+    onChange(func) {
+      subscribers = [ ...subscribers, func ]
+      return function unsubscribe() {
+        return subscribers = subscribers.filter(item => item !== func)
+      }
+    },
+    close() {
+      subscribers = []
+      client.end()
+    },
+  }
 }
 
-module.exports = watch
+module.exports = createWatcher

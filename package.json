@@ -31,6 +31,7 @@
     "react": "^15.4.1",
     "react-dom": "^15.4.1",
     "react-router": "v4.0.0-alpha.6",
+    "react-test-renderer": "^15.4.1",
     "rimraf": "^2.5.4",
     "rss": "^1.2.1",
     "sitemap": "^1.8.2",

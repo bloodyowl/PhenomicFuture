@@ -7,7 +7,6 @@ const api = express()
 const encode = text => new Buffer(text).toString("base64")
 const decode = text => new Buffer(text, "base64").toString()
 
-
 const connect = (list, limit) => {
   const hasNextPage = limit === undefined ? false : list.length >= limit
   return {

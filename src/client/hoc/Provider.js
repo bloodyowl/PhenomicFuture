@@ -1,5 +1,5 @@
 const React = require("react")
-const QueryString = require("../utils/QueryString")
+const QueryString = require("../../utils/QueryString")
 
 class Provider extends React.Component {
   constructor(props) {
@@ -10,7 +10,7 @@ class Provider extends React.Component {
     return {
       store: this.props.store,
       query: this.query,
-      isPrerendering: !!this.props.isPrerendering,
+      __prerendering: !!this.props.__prerendering,
     }
   }
   query(queries) {
@@ -26,21 +26,28 @@ class Provider extends React.Component {
           })
       })
     )
-      .then(() => {
-        if(typeof this.props.onFetched === "function") {
-          this.props.onFetched()
-        }
-      })
+      .then(
+        this.props.onFetchComplete,
+        this.props.onError
+      )
   }
   render() {
     return React.Children.only(this.props.children)
   }
 }
 
+Provider.propTypes = {
+  fetch: React.PropTypes.func.isRequired,
+  store: React.PropTypes.object.isRequired,
+  onFetchComplete: React.PropTypes.func,
+  onError: React.PropTypes.func,
+  __prerendering: React.PropTypes.bool,
+}
+
 Provider.childContextTypes = {
-  query: () => {},
-  store: () => {},
-  isPrerendering: () => {},
+  query: React.PropTypes.func,
+  store: React.PropTypes.object.isRequired,
+  __prerendering: React.PropTypes.bool,
 }
 
 module.exports = Provider

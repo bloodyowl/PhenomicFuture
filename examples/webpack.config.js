@@ -3,7 +3,7 @@ const webpack = require("webpack")
 
 module.exports = {
   entry: {
-    bundle: path.join(process.cwd(), "src/client/index.js"),
+    bundle: path.join(process.cwd(), "src/client/entry.js"),
   },
   output: {
     publicPath: "/",

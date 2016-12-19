@@ -1,5 +1,5 @@
 const React = require("react")
-const createContainer = require("../../src/client/createContainer")
+const createContainer = require("../../src/client/hoc/Container")
 const query = require("../../src/client/query")
 
 const Link = require("react-router/Link").default
@@ -14,7 +14,7 @@ const PostList = (props) => (
         <ul>
           {props.posts.list.map(post =>
             <li key={post.id}>
-              <Link to={"/" + post.id}>
+              <Link to={"/post/" + post.id}>
                 {post.title}
               </Link>
             </li>

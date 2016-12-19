@@ -1,5 +1,5 @@
 const React = require("react")
-const createContainer = require("../../src/client/createContainer")
+const createContainer = require("../../src/client/hoc/Container")
 const query = require("../../src/client/query")
 
 const Link = require("react-router/Link").default
@@ -28,5 +28,6 @@ const TagList = (props) => (
 module.exports = createContainer(TagList, props => ({
   tags: query({
     collection: "tags",
+    order: "asc",
   }),
 }))

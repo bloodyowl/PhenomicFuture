@@ -1,13 +1,13 @@
 const db = require("..")
 
-describe("Databack", () => {
+describe("db", () => {
 
   beforeEach(() => {
     jest.resetModuleRegistry()
   })
 
   it("should be able to put & get a value", () => {
-    return db.put("foo", "bar", "bar")
+    return db.put("foo", "bar", { data: { title: "bar" } })
       .then(() => db.get("foo", "bar"))
       .then(value => expect(value).toMatchSnapshot())
   })

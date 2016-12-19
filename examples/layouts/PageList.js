@@ -4,7 +4,7 @@ const query = require("../../src/client/query")
 
 const Link = require("react-router/Link").default
 
-const TagPostList = (props) => (
+const PageList = (props) => (
   <div>
     {props.isLoading &&
       <span>loading …</span>
@@ -12,16 +12,16 @@ const TagPostList = (props) => (
     {!props.isLoading &&
       <div>
         <ul>
-          {props.posts.list.map(post =>
-            <li key={post.id}>
-              <Link to={"/" + post.id}>
-                {post.title}
+          {props.pages.list.map(page =>
+            <li key={page.id}>
+              <Link to={"/" + page.id}>
+                {page.title}
               </Link>
             </li>
           )}
         </ul>
-        {props.posts.hasNextPage &&
-          <Link to={"/tag/" + props.params.key + "/" + props.posts.next}>
+        {props.pages.hasNextPage &&
+          <Link to={"/pages/" + props.posts.next}>
             next
           </Link>
         }
@@ -30,11 +30,9 @@ const TagPostList = (props) => (
   </div>
 )
 
-module.exports = createContainer(TagPostList, props => ({
-  posts: query({
-    collection: "posts",
-    by: "tags",
-    value: props.params.key,
+module.exports = createContainer(PageList, props => ({
+  pages: query({
+    collection: "pages",
     limit: 20,
     after: props.params.after,
   }),

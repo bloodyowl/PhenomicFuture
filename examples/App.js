@@ -10,13 +10,15 @@ const Home = require("./layouts/Home")
 const Error404 = require("./layouts/Error404")
 const TagList = require("./layouts/TagList")
 const TagPostList = require("./layouts/TagPostList")
+const PageList = require("./layouts/PageList")
+const Page = require("./layouts/Page")
 
-const AppContainer = require("../src/client/AppContainer")
+const PhenomicRenderer = require("../src/client/hoc/Renderer")
 
 require("./defaults.css")
 
 module.exports = (
-  <AppContainer>
+  <PhenomicRenderer>
     <Link to="/" activeOnlyWhenExact activeStyle={{ color: "red" }}>
       <h1 style={{ background: "#ccc", margin: 0 }}>Putain de code</h1>
     </Link>
@@ -25,7 +27,9 @@ module.exports = (
     <Match exactly pattern="/author/:key/:after?" paginated component={Author} forEach="authors" />
     <Match exactly pattern="/tags" component={TagList} />
     <Match exactly pattern="/tag/:key/:after?" paginated component={TagPostList} forEach="tags" />
+    <Match exactly pattern="/pages/:after?" paginated component={PageList} />
     <Match exactly pattern="/404.html" component={Error404} />
-    <Miss component={Post} forEach="posts" />
-  </AppContainer>
+    <Match exactly pattern="/post/*" component={Post} forEach="posts" />
+    <Miss component={Page} forEach="pages" />
+  </PhenomicRenderer>
 )

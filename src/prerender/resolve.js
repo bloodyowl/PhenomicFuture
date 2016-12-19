@@ -1,10 +1,21 @@
+const toQuery = require("../client/query")
+
 const resolveURLsForDynamicParams = async function (fetch, route) {
   if(!route.props.forEach) {
     return route
   }
-  const collection = await fetch({ url: route.props.forEach })
-  const pattern = (route.props.pattern || ":key")
-  return collection.list.map(item => Object.assign({}, item, { props: Object.assign({}, route.props, { pattern: pattern.replace(":key", item.key), params: { key: item.key } }) }))
+  const collection = await fetch(toQuery({ collection: route.props.forEach }))
+  const pattern = route.props.pattern || "*"
+  return collection.list.map(item => {
+    return {
+      ...route,
+      props: {
+        ...route.props,
+        pattern: pattern.replace(/\:key|\*/, item.id),
+        params: { key: item.id },
+      },
+    }
+  })
 }
 
 const findPaginatedQuery = function (queries) {
@@ -14,11 +25,11 @@ const findPaginatedQuery = function (queries) {
 
 const resolveNextURLsInPagination = async function (pattern, query, fetch, urls = []) {
   urls = [ ...urls, pattern.replace("/:after?", query.after ? "/" + query.after : "") ]
-  const nextPage = await fetch(query)
+  const nextPage = await fetch(toQuery(query))
   if(nextPage.hasNextPage) {
     return resolveNextURLsInPagination(
       pattern,
-      Object.assign({}, query, { after: nextPage.next }),
+      { ...query, after: nextPage.next },
       fetch,
       urls
     )
