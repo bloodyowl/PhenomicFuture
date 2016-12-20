@@ -1,5 +1,0 @@
-exports[`getDOMRoot should generate a HTML string 1`] = `"<div id=\"PhenomicRoot\"></div>"`;
-
-exports[`getDOMRoot should generate a HTML string with HTML content 1`] = `"<div id=\"PhenomicRoot\"><h1>hey</h1></div>"`;
-
-exports[`getDOMRoot should generate a HTML string with content 1`] = `"<div id=\"PhenomicRoot\">hey</div>"`;

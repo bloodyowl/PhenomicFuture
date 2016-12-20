@@ -1,8 +1,0 @@
-exports[`QueryString should decode 1`] = `
-Object {
-  "a": "1",
-  "b": "foo",
-}
-`;
-
-exports[`QueryString should encode 1`] = `"a=1&b=foo"`;

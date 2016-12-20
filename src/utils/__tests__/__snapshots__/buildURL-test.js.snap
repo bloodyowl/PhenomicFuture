@@ -1,9 +1,0 @@
-exports[`buildURL should build URLs 1`] = `"ROOT/posts/item/test.json"`;
-
-exports[`buildURL should build URLs 2`] = `"ROOT/posts/by-tag/test/.json"`;
-
-exports[`buildURL should build URLs 3`] = `"ROOT/posts/by-tag/test/asc.json"`;
-
-exports[`buildURL should build URLs 4`] = `"ROOT/posts/by-tag/test/asc/limit-10.json"`;
-
-exports[`buildURL should build URLs 5`] = `"ROOT/posts/by-tag/test/asc/limit-10/after-BASE64.json"`;
