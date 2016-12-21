@@ -40,7 +40,7 @@ module.exports = function() {
         },
       }
       return new Promise((resolve, reject) => {
-        webpack(serverConfig).run(function(error, stats) {
+        webpack(specialConfig).run(function(error, stats) {
           if(error) {
             console.error(error)
             reject(error)

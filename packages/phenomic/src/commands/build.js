@@ -11,6 +11,7 @@ const writeFile = require("../utils/writeFile")
 
 const resolveURLsToPrerender = require("../prerender/resolve")
 const db = require("../db")
+const createURL = require("phenomic-api-client/lib/url")
 const getPort = require("get-port")
 
 console.log("⚡️ Hey! Let's get on with it")
@@ -21,7 +22,7 @@ require("rimraf").sync("dist")
 async function getContent (db, config) {
   return new Promise((resolve, reject) => {
     const watcher = createWatcher({
-      path: path.join(config, "content"),
+      path: path.join(config.path, "content"),
       plugins: config.plugins,
     })
     watcher.onChange(async function (files) {
@@ -38,9 +39,9 @@ async function getContent (db, config) {
 }
 
 function createFetchFunction(port) {
-  const toURL = buildURL(`http://localhost:${ port }`)
-  return url => {
-    return fetch(toURL(url)).then(res => res.json())
+  return config => {
+    return fetch(createURL({ ...config, root: `http://localhost:${ port }` }))
+      .then(res => res.json())
   }
 }
 
@@ -54,7 +55,7 @@ async function build(config) {
   const port = await getPort()
   phenomicServer.listen(port)
   // Build webpack
-  const app = await config.bundler.buildForPrerendering()
+  const app = await config.bundler.buildForPrerendering(config)
   console.log("📦 Webpack server side done "  + (Date.now() - lastStamp) + "ms")
   lastStamp = Date.now()
   // Retreive content
@@ -69,7 +70,7 @@ async function build(config) {
   console.log("📃 Pre-rendering done " + (Date.now() - lastStamp) + "ms")
   lastStamp = Date.now()
 
-  await config.bundler.build()
+  await config.bundler.build(config)
   console.log("📦 Webpack built " + (Date.now() - lastStamp) + "ms")
   lastStamp = Date.now()
 }

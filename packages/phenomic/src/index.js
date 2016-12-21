@@ -17,9 +17,9 @@ function normalizeConfiguration(config) {
 
 module.exports = {
   start(config) {
-    start(normalizeConfiguration(config))
+    return start(normalizeConfiguration(config))
   },
-  build() {
-    build(normalizeConfiguration(config))
+  build(config) {
+    return build(normalizeConfiguration(config))
   },
 }

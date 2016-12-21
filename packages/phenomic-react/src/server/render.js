@@ -1,5 +1,6 @@
 const React = require("react")
 const ReactDOMServer = require("react-dom/server")
+const path = require("path")
 
 const Provider = require("../components/Provider")
 const HTML = require("../components/HTML")
@@ -34,10 +35,11 @@ function render (app, fetch, url) {
           </Provider>
         )
 
+        const state = store.getState()
         resolve([
-          { path: path.join(rendered.url, "index.html"), contents: renderHTML({ body: contents, state: store.getState() }) },
-          ...Object.keys(rendered.state)
-            .map(key => ({ path: createURL({ root: "phenomic", ...QueryString.decode(key) }), contents: JSON.stringify(rendered.state[key].node) }) )
+          { path: path.join(url, "index.html"), contents: renderHTML({ body: contents, state: store.getState() }) },
+          ...Object.keys(state)
+            .map(key => ({ path: createURL({ root: "phenomic", ...QueryString.decode(key) }), contents: JSON.stringify(state[key].node) }) )
         ])
 
 
