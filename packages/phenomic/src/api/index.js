@@ -18,6 +18,7 @@ function createServer(db, plugins) {
 
   server.use(function(req, res, next) {
     req.db = db
+    next()
   })
 
   server.get("/", async function (req, res) {

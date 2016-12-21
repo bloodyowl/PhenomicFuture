@@ -1,6 +1,5 @@
 const createWatcher = require("../watch")
 const path = require("path")
-const webpack = require("webpack")
 
 const processFile = require("../injection/processFile")
 

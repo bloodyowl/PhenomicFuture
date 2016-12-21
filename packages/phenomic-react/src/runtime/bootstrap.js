@@ -7,7 +7,7 @@ const createStore = require("../shared/store")
 const createURL = require("phenomic-api-client/lib/url")
 
 function createFetchFunction() {
-  return config => fetch(createURL(config)).then(res => res.json())
+  return config => fetch(createURL({ ...config, root: "/phenomic" })).then(res => res.json())
 }
 
 function bootstrap(app) {

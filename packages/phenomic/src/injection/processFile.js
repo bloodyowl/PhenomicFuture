@@ -16,7 +16,9 @@ async function processFile(db, file, plugins) {
   const pathSegments = file.name.split(path.sep)
   const collectionName = pathSegments[0]
   const fileContents = await readFile(file.fullpath)
-  const transformPlugin = plugins.find(plugin => plugin.supportedFileTypes.includes(path.extname(file.name).slice(1))) || fallbackTransformFile
+  const transformPlugin = plugins
+    .filter(plugin => Array.isArray(plugin.supportedFileTypes))
+    .find(plugin => plugin.supportedFileTypes.indexOf(path.extname(file.name).slice(1)) !== -1) || fallbackTransformFile
   const parsed = await transformPlugin.transform(file, fileContents)
   await putInDatabase(db, collectionName, file.name, parsed)
 }
@@ -83,6 +85,8 @@ async function putInDatabase (db, collectionName, name, json) {
         // global tag list
         db.put([ "tags" ], tag, { id: tag }),
         db.put([ "tags", "default" ], tag, { id: tag }),
+        // TODO: tags by collection
+        // db.put([ "tags", collectionName ], tag, { id: tag }),
       ])
     }),
   ])
