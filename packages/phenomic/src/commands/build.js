@@ -29,7 +29,7 @@ async function getContent (db, config) {
       watcher.close()
       await db.destroy()
       try {
-        await Promise.all(files.map(file => processFile(db, file, config.plugins)))
+        await Promise.all(files.map(file => processFile(db, file, config.plugins, true)))
         resolve()
       } catch(error) {
         reject(error)
@@ -46,7 +46,7 @@ function createFetchFunction(port) {
 }
 
 async function prerenderFileAndDependencies (config, app, fetch, url) {
-  const files = await config.renderer.render(app, fetch, url)
+  const files = await app.renderServer(app, fetch, url)
   return Promise.all(files.map(file => writeFile(path.join(config.outdir, file.path), file.contents)))
 }
 

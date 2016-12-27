@@ -4,15 +4,16 @@ const resolveURLsForDynamicParams = async function (fetch, route) {
   if(!route.collection) {
     return route
   }
-  const collection = await fetch(createQuery({ collection: route.collection }))
-  const pattern = route.pattern || "*"
-  return collection.list.map(item => {
-    return {
-      ...route,
-      pattern: pattern.replace(/\:key|\*/, item.id),
-      params: { key: item.id },
-    }
-  })
+  const collection = await fetch(createQuery(typeof route.collection === "string" ? { collection: route.collection } : route.collection))
+  const path = route.path || "*"
+  return collection.list
+    .map(item => {
+      return {
+        ...route,
+        path: path.replace(/\*/, item.id),
+        params: { splat: item.id },
+      }
+    })
 }
 
 const findPaginatedQuery = function (queries) {
@@ -20,12 +21,12 @@ const findPaginatedQuery = function (queries) {
   return queries[key]
 }
 
-const resolveNextURLsInPagination = async function (pattern, query, fetch, urls = []) {
-  urls = [ ...urls, pattern.replace("/:after?", query.after ? "/" + query.after : "") ]
+const resolveNextURLsInPagination = async function (path, query, fetch, urls = []) {
+  urls = [ ...urls, path.replace("/:after?", query.after ? "/" + query.after : "") ]
   const nextPage = await fetch(createQuery(query))
   if(nextPage.hasNextPage) {
     return resolveNextURLsInPagination(
-      pattern,
+      path,
       { ...query, after: nextPage.next },
       fetch,
       urls
@@ -37,18 +38,18 @@ const resolveNextURLsInPagination = async function (pattern, query, fetch, urls 
 
 const resolvePaginatedURLs = async function (fetch, route) {
   if(!route.paginated) {
-    return route.pattern
+    return route.path
   }
   if(!route.getQueries) {
-    return route.pattern
+    return route.path
   }
   const initialRouteParams = route.params || {}
   const initialRouteQuery = route.getQueries({ params: initialRouteParams })
   const query = findPaginatedQuery(initialRouteQuery)
   if(!query) {
-    return route.pattern
+    return route.path
   }
-  return resolveNextURLsInPagination(route.pattern, query, fetch)
+  return resolveNextURLsInPagination(route.path, query, fetch)
 }
 
 const flatten = array => {

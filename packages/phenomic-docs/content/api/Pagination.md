@@ -1,6 +1,8 @@
 ---
 title: Pagination
 path: pagination
+tags:
+  - pagination
 ---
 
 ## How to paginate?

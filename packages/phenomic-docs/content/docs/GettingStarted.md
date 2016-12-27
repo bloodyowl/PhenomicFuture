@@ -1,6 +1,8 @@
 ---
 title: Getting started
 path: getting-started
+tags:
+  - getting-started
 ---
 
 ## Installation

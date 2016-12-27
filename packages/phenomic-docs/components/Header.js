@@ -1,6 +1,6 @@
 import React from "react"
 import { View, Text, StyleSheet } from "react-native-web"
-import Link from "react-router/Link"
+import { Link } from "react-router"
 
 const Header = () => (
   <View style={styles.header}>

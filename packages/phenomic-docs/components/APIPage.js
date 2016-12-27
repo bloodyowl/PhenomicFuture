@@ -1,6 +1,6 @@
 import React from "react"
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native-web"
-import Link from "react-router/Link"
+import { Link } from "react-router"
 
 import { createContainer, query } from "phenomic-react/lib/client"
 
@@ -8,16 +8,16 @@ import MarkdownGenerated from "./MarkdownGenerated"
 
 const Home = (props) => (
   <View>
-    {props.isLoading &&
-      <ActivityIndicator />
-    }
-    {!props.isLoading &&
-      <View style={styles.page}>
-        <View style={styles.column}>
-          <Text style={styles.menuTitle}>
-            {"API Reference"}
-          </Text>
-          {props.apis.list.map(api =>
+    <View style={styles.page}>
+      <View style={styles.column}>
+        <Text style={styles.menuTitle}>
+          {"API Reference"}
+        </Text>
+        {props.apis.status === "loading" &&
+          <ActivityIndicator />
+        }
+        {props.apis.status === "idle" &&
+          props.apis.node.list.map(api =>
             <View key={api.id}>
               <Link to={`/api/${ api.id }`}>
                 <Text style={styles.property}>
@@ -25,16 +25,43 @@ const Home = (props) => (
                 </Text>
               </Link>
             </View>
-          )}
-        </View>
-        <View>
-          <Text style={styles.title}>{props.page.title}</Text>
-          <MarkdownGenerated
-            body={props.page.body}
-          />
-        </View>
+          )
+        }
+        <Text style={styles.menuTitle}>
+          {"Tags"}
+        </Text>
+        {props.tags.status === "loading" &&
+          <ActivityIndicator />
+        }
+        {props.tags.status === "idle" &&
+          props.tags.node.list.map(tag =>
+            <View key={tag.id}>
+              <Link to={`/api/tag/${ tag.id }`}>
+                <Text style={styles.property}>
+                  {tag.id}
+                </Text>
+              </Link>
+            </View>
+          )
+        }
       </View>
-    }
+      <View>
+        <Text style={styles.title}>{props.page.title}</Text>
+        {props.page.status === "loading" &&
+          <ActivityIndicator />
+        }
+        {props.page.status === "idle" &&
+          <View>
+            <Text style={styles.title}>
+              {props.page.node.title}
+            </Text>
+            <MarkdownGenerated
+              body={props.page.node.body}
+            />
+          </View>
+        }
+      </View>
+    </View>
   </View>
 )
 
@@ -67,8 +94,13 @@ export default createContainer(Home, props => ({
   apis: query({
     collection: "api",
   }),
+  tags: query({
+    collection: "tags",
+    by: "collection",
+    value: "api",
+  }),
   page: query({
     collection: "api",
-    id: props.params[0],
+    id: props.params.splat,
   })
 }))

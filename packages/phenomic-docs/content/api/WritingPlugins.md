@@ -1,6 +1,8 @@
 ---
 title: Writing plugins
 path: plugins
+tags:
+  - plugins
 ---
 
 A plugin should export a function exporting an object containing methods :
@@ -33,7 +35,7 @@ const plugin = {
 const plugin = {
   type: "api",
   build() {
-    
+
   },
   define(api, db) {
     api.get("/feed.xml", async function (req, res) {

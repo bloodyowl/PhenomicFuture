@@ -1,6 +1,8 @@
 ---
 title: createContainer
 path: container
+tags:
+  - react
 ---
 
 ## createContainer(Component, getQueries)

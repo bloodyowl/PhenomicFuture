@@ -1,7 +1,6 @@
 const React = require("react")
 const mapValues = require("../shared/mapValues")
 const QueryString = require("../shared/QueryString")
-const Redirect = require("react-router/Redirect").default
 
 const emptyObject = {}
 const defaultGetQueries = () => emptyObject
@@ -80,12 +79,10 @@ function createContainer(Component, getQueries = defaultGetQueries) {
       const values = Object.keys(this.queries).map(key => this.queries[key])
       const isLoading = values.some(item => !store.get(item).node)
       const hasErrored = values.some(item => store.get(item).status === "error")
-      const props = mapValues(this.queries, (value, key) => store.get(this.queries[key]).node)
+      const props = mapValues(this.queries, (value, key) => store.get(this.queries[key]))
       if(hasErrored) {
         return (
-          <Redirect
-            to="/404.html"
-          />
+          null
         )
       }
       return (

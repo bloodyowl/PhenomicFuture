@@ -1,6 +1,8 @@
 const React = require("react")
 const QueryString = require("../shared/QueryString")
 
+const performQuery = require("../shared/performQuery")
+
 class Provider extends React.Component {
   constructor(props) {
     super(props)
@@ -14,22 +16,7 @@ class Provider extends React.Component {
     }
   }
   query(queries) {
-    Promise.all(
-      queries.map(key => {
-        this.props.store.setAsLoading(key)
-        return this.props.fetch(QueryString.decode(key))
-          .then(value => {
-            this.props.store.set(key, value)
-          })
-          .catch(error => {
-            this.props.store.setAsError(key, error)
-          })
-      })
-    )
-      .then(
-        this.props.onFetchComplete,
-        this.props.onError
-      )
+    performQuery(this.props.store, this.props.fetch, queries)
   }
   render() {
     return React.Children.only(this.props.children)

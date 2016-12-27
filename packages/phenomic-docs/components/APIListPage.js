@@ -1,6 +1,6 @@
 import React from "react"
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native-web"
-import Link from "react-router/Link"
+import { Link } from "react-router"
 
 import { createContainer, query } from "phenomic-react/lib/client"
 
@@ -14,7 +14,7 @@ const Home = (props) => (
         <Text style={styles.title}>
           {"API Reference"}
         </Text>
-        {props.apis.list.map(api =>
+        {props.apis.node.list.map(api =>
           <View key={api.id}>
             <Link to={`/api/${ api.id }`}>
               <Text style={styles.property}>

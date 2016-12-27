@@ -12,7 +12,7 @@ const defaultTransformPlugin = {
   },
 }
 
-async function processFile(db, file, plugins) {
+async function processFile(db, file, plugins, isProduction) {
   const pathSegments = file.name.split(path.sep)
   const collectionName = pathSegments[0]
   const fileContents = await readFile(file.fullpath)
@@ -20,6 +20,9 @@ async function processFile(db, file, plugins) {
     .filter(plugin => Array.isArray(plugin.supportedFileTypes))
     .find(plugin => plugin.supportedFileTypes.indexOf(path.extname(file.name).slice(1)) !== -1) || fallbackTransformFile
   const parsed = await transformPlugin.transform(file, fileContents)
+  if(isProduction && parsed.draft) {
+    return
+  }
   await putInDatabase(db, collectionName, file.name, parsed)
 }
 
@@ -77,7 +80,12 @@ async function putInDatabase (db, collectionName, name, json) {
     // sorted list
     db.put([ collectionName, "default" ], sortedKey, { id: key }),
     // sorted list, filtered by authors
-    ...getAuthors(json).map(author => db.put([ collectionName, "authors", author ], sortedKey, { id: key })),
+    ...getAuthors(json).map(author => {
+      return Promise.all([
+        db.put([ collectionName, "authors", author ], sortedKey, { id: key }),
+        db.put([ "authors", collectionName ], author, { id: author }),
+      ])
+    }),
     ...getTags(json).map(tag => {
       return Promise.all([
         // sorted list, filtered by tags
@@ -85,8 +93,7 @@ async function putInDatabase (db, collectionName, name, json) {
         // global tag list
         db.put([ "tags" ], tag, { id: tag }),
         db.put([ "tags", "default" ], tag, { id: tag }),
-        // TODO: tags by collection
-        // db.put([ "tags", collectionName ], tag, { id: tag }),
+        db.put([ "tags", "collection", collectionName ], tag, { id: tag }),
       ])
     }),
   ])

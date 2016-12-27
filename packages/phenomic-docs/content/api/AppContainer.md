@@ -1,6 +1,8 @@
 ---
 title: PhenomicRenderer
 path: renderer
+tags:
+  - react
 ---
 
 ## PhenomicRenderer

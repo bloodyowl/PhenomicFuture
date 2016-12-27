@@ -1,6 +1,6 @@
 import React from "react"
 import { View, Text, Image, TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native-web"
-import Link from "react-router/Link"
+import { Link } from "react-router"
 
 import { createContainer, query } from "phenomic-react/lib/client"
 
@@ -15,7 +15,7 @@ const ShowcaseList = (props) => (
           {"Showcase"}
         </Text>
         <View style={styles.list}>
-          {props.showcase.list.map(site =>
+          {props.showcase.node.list.map(site =>
             <TouchableOpacity style={styles.item} key={site.id} href={site.url}>
               <View>
                 <Image

@@ -12,19 +12,20 @@ const canUseDOM = !!(
   window.document.createElement
 )
 
-class PhenomicRenderer extends React.Component {
-  render() {
-    return (
-      <div
-        {...this.props}
-      />
-    )
-  }
-}
+const emptyFunction = () => {}
 
-PhenomicRenderer.render = function(app) {
-  if(canUseDOM) {
-    require("../runtime/bootstrap")(app)
+const PhenomicRenderer = {
+  createApp: function(routes, config = {}) {
+    return {
+      routes,
+      render() {
+        if(canUseDOM) {
+          const renderer = config.render || require("../render/client")
+          return renderer(routes)
+        }
+      },
+      renderServer: config.renderServer || require("../render/server"),
+    }
   }
 }
 

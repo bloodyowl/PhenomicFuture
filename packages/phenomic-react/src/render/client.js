@@ -1,16 +1,15 @@
 const React = require("react")
-const ReactDOM = require("react-dom")
-const BrowserRouter = require("react-router/BrowserRouter").default
 const Provider = require("../components/Provider")
-
 const createStore = require("../shared/store")
 const createURL = require("phenomic-api-client/lib/url")
+const ReactDOM = require("react-dom")
 
-function createFetchFunction() {
-  return config => fetch(createURL({ ...config, root: "/phenomic" })).then(res => res.json())
-}
+function render(routes) {
 
-function bootstrap(app) {
+  function createFetchFunction() {
+    return config => fetch(createURL({ ...config, root: "/phenomic" })).then(res => res.json())
+  }
+
   const initialStateNode = document.getElementById("Hydration")
   const store = createStore(
     initialStateNode && initialStateNode.textContent ?
@@ -23,12 +22,10 @@ function bootstrap(app) {
       fetch={createFetchFunction()}
       store={store}
     >
-      <BrowserRouter>
-        {app}
-      </BrowserRouter>
+      {routes}
     </Provider>,
     document.getElementById("PhenomicRoot")
   )
 }
 
-module.exports = bootstrap
+module.exports = render

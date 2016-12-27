@@ -12,9 +12,9 @@ const ChangelogPage = (props) => (
     }
     {!props.isLoading &&
       <View style={styles.page}>
-        <Text style={styles.title}>{props.page.title}</Text>
+        <Text style={styles.title}>{props.page.node.title}</Text>
         <MarkdownGenerated
-          body={props.page.body}
+          body={props.page.node.body}
         />
       </View>
     }
@@ -37,6 +37,6 @@ const styles = StyleSheet.create({
 export default createContainer(ChangelogPage, props => ({
   page: query({
     collection: "changelog",
-    id: props.params[0],
+    id: props.params.splat,
   })
 }))

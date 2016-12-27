@@ -16,14 +16,6 @@ module.exports = function() {
         entry: {
           bundle: path.join(config.path, "App.js"),
         },
-        externals: [
-          function(context, request, callback) {
-            if(/^[a-z\-0-9]+$/.test(request)) {
-              return callback(null, "commonjs " + path.join(process.cwd(), "node_modules", request))
-            }
-            callback()
-          },
-        ],
         output: {
           publicPath: "/",
           path: path.join(process.cwd(), ".tmp/webpack"),
@@ -31,12 +23,6 @@ module.exports = function() {
           target: "node",
           library: "app",
           libraryTarget: "commonjs2",
-        },
-        resolve: {
-          ...config.resolve,
-          root: [
-            path.join(process.cwd(), "examples"),
-          ],
         },
       }
       return new Promise((resolve, reject) => {
