@@ -1,3 +1,6 @@
+/**
+ * @flow
+ */
 const levelUp = require("levelup")
 const levelDown = require("leveldown")
 const subLevel = require("level-sublevel")
@@ -10,7 +13,7 @@ const level = subLevel(database)
 const options = { valueEncoding: "json" }
 const wrapStreamConfig = config => Object.assign({}, config, options)
 
-function getSublevel (db, sub, filter, filterValue) {
+function getSublevel (db: Sublevel, sub: string | Array<string>, filter: ?string, filterValue: ?string) {
   if(!Array.isArray(sub)) {
     sub = [ sub ]
   }
@@ -20,7 +23,7 @@ function getSublevel (db, sub, filter, filterValue) {
       sub = sub.concat(filterValue)
     }
   }
-  return sub.reduce((db, name) => db.sublevel(name), db)
+  return sub.reduce((db: Sublevel, name) => db.sublevel(name), db)
 }
 
 async function getDataRelation (fieldName, keys) {
@@ -62,7 +65,7 @@ const db = {
       })
     })
   },
-  put(sub, key, value) {
+  put(sub: string | Array<string>, key: string, value: any) {
     return new Promise((resolve, reject) => {
       const data = { ...value, key }
       const table = getSublevel(level, sub)
@@ -77,7 +80,7 @@ const db = {
         })
     })
   },
-  get(sub, key) {
+  get(sub: string | Array<string>, key: string) {
     return new Promise((resolve, reject) => {
       return getSublevel(level, sub).get(key, options, async function (error, data) {
         if(error) {
@@ -96,7 +99,7 @@ const db = {
       })
     })
   },
-  getPartial(sub, key) {
+  getPartial(sub: string | Array<string>, key: string) {
     return new Promise((resolve, reject) => {
       return getSublevel(level, sub).get(key, options, (error, data) => {
         if(error) {
@@ -107,7 +110,7 @@ const db = {
       })
     })
   },
-  getList(sub, config, filter = "default", filterValue) {
+  getList(sub: string | Array<string>, config: LevelStreamConfig, filter: string = "default", filterValue: string) {
     return new Promise((resolve, reject) => {
       const array = []
       getSublevel(level, sub, filter, filterValue).createReadStream(wrapStreamConfig(config))

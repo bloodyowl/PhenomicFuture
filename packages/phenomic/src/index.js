@@ -1,10 +1,13 @@
+/**
+ * @flow
+ */
 const path = require("path")
 const flattenConfiguration = require("./configuration/flattenConfiguration")
 
 const start = require("./commands/start")
 const build = require("./commands/build")
 
-function normalizeConfiguration(config) {
+function normalizeConfiguration(config: PhenomicInputConfig): PhenomicConfig {
   return {
     path: config.path || process.cwd(),
     outdir: config.outdir || path.join(process.cwd(), "dist"),
@@ -16,10 +19,10 @@ function normalizeConfiguration(config) {
 }
 
 module.exports = {
-  start(config) {
+  start(config: PhenomicInputConfig) {
     return start(normalizeConfiguration(config))
   },
-  build(config) {
+  build(config: PhenomicInputConfig) {
     return build(normalizeConfiguration(config))
   },
 }

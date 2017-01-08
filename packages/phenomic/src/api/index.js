@@ -1,3 +1,6 @@
+/**
+ * @flow
+ */
 const express = require("express")
 const path = require("path")
 
@@ -13,25 +16,20 @@ const connect = (list, limit) => {
   }
 }
 
-function createServer(db, plugins) {
+function createServer(db: PhenomicDB, plugins: Array<PhenomicPlugin>) {
   const server = express()
 
-  server.use(function(req, res, next) {
-    req.db = db
-    next()
-  })
-
-  server.get("/", async function (req, res) {
+  server.get("/", async function (req: express$Request, res: express$Response) {
     res.json({
       engine: "phenomic",
       version: "1.0.0",
     })
   })
 
-  server.get("/:collection/by-:filter/:value/:sort.json", async function (req, res) {
+  server.get("/:collection/by-:filter/:value/:sort.json", async function (req: express$Request, res: express$Response) {
     try {
       const reverse = req.params.sort === "desc"
-      const list = await req.db.getList(req.params.collection, { reverse }, req.params.filter, req.params.value)
+      const list = await db.getList(req.params.collection, { reverse }, req.params.filter, req.params.value)
       res.json(connect(list))
     } catch (error) {
       console.error(error)
@@ -39,11 +37,11 @@ function createServer(db, plugins) {
     }
   })
 
-  server.get("/:collection/by-:filter/:value/:sort/limit-:limit.json", async function (req, res) {
+  server.get("/:collection/by-:filter/:value/:sort/limit-:limit.json", async function (req: express$Request, res: express$Response) {
     try {
       const limit = parseInt(req.params.limit)
       const reverse = req.params.sort === "desc"
-      const list = await req.db.getList(req.params.collection, { limit: limit + 1, reverse }, req.params.filter, req.params.value)
+      const list = await db.getList(req.params.collection, { limit: limit + 1, reverse }, req.params.filter, req.params.value)
       res.json(connect(list, limit))
     } catch (error) {
       console.error(error)
@@ -51,12 +49,12 @@ function createServer(db, plugins) {
     }
   })
 
-  server.get("/:collection/by-:filter/:value/:sort/limit-:limit/after-:after.json", async function (req, res) {
+  server.get("/:collection/by-:filter/:value/:sort/limit-:limit/after-:after.json", async function (req: express$Request, res: express$Response) {
     try {
       const limit = parseInt(req.params.limit)
       const lt = decode(req.params.after)
       const reverse = req.params.sort === "desc"
-      const list = await req.db.getList(req.params.collection, { limit: limit + 1, lt, reverse }, req.params.filter, req.params.value)
+      const list = await db.getList(req.params.collection, { limit: limit + 1, lt, reverse }, req.params.filter, req.params.value)
       res.json(connect(list, limit))
     } catch (error) {
       console.error(error)
@@ -64,9 +62,9 @@ function createServer(db, plugins) {
     }
   })
 
-  server.get("/:collection/item/*.json", async function (req, res) {
+  server.get("/:collection/item/*.json", async function (req: express$Request, res: express$Response) {
     try {
-      const resource = await req.db.get(req.params.collection, req.params[0])
+      const resource = await db.get(req.params.collection, req.params["0"])
       res.json(resource.value)
     } catch (error) {
       console.error(error)
@@ -74,9 +72,10 @@ function createServer(db, plugins) {
     }
   })
 
+  // Install the plugins
   plugins.forEach(plugin => {
     if(plugin.type === "api") {
-      plugin.define(server)
+      plugin.define(server, db)
     }
   })
 

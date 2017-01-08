@@ -1,4 +1,5 @@
 import React from "react"
+import { AppRegistry } from "react-native-web"
 import { Router, Route, browserHistory } from "react-router"
 
 import Header from "./components/Header"

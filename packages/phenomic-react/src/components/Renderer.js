@@ -25,6 +25,7 @@ const PhenomicRenderer = {
         }
       },
       renderServer: config.renderServer || require("../render/server"),
+      renderToString: config.renderToString || require("../render/server").renderToString,
     }
   }
 }

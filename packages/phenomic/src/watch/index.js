@@ -1,25 +1,37 @@
+/**
+ * @flow
+ */
 const watchman = require("fb-watchman")
+import type { Client } from "fb-watchman"
 const path = require("path")
 
-const createErrorHandler = client => error => {
+const createErrorHandler = (client: Client) => (error: any) => {
   if(error) {
     client.end()
     throw error
   }
 }
 
-function getExtensionsToWatch(plugins) {
+function getExtensionsToWatch(plugins): Array<string> {
   return plugins.reduce((acc, plugin) => {
-    if(Array.isArray(plugin.supportedFileTypes)) {
-      acc.push(...plugin.supportedFileTypes)
+    if(plugin.type === "transform") {
+      const tranformPlugin: PhenomicTransformPlugin = plugin
+      acc.push(...tranformPlugin.supportedFileTypes)
     }
     return acc
   }, [])
 }
 
-function createWatcher(config) {
+type File = {
+  name: string,
+  fullpath: string,
+  exists: boolean,
+  type: string,
+}
+
+function createWatcher(config: PhenomicConfig) {
   const client = new watchman.Client()
-  const handleError = createErrorHandler()
+  const handleError = createErrorHandler(client)
   let subscribers = []
   let files = {}
   client.capabilityCheck({ optional: [], required: ["relative_root"] }, (error) => {
@@ -30,7 +42,7 @@ function createWatcher(config) {
       const subcription = {
         expression: [
           "anyof",
-          ...getExtensionsToWatch(config.plugins).map(extension => ["match", `*.${ extension }`])
+          ...getExtensionsToWatch(config.plugins).map((extension: string) => ["match", `*.${ extension }`])
         ],
         fields: ["name", "exists", "type"],
         relative_root: response.relative_path,
@@ -58,7 +70,7 @@ function createWatcher(config) {
   })
 
   return {
-    onChange(func) {
+    onChange(func: (files: Array<File>) => void) {
       subscribers = [ ...subscribers, func ]
       return function unsubscribe() {
         return subscribers = subscribers.filter(item => item !== func)

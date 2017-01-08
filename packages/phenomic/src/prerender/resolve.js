@@ -1,6 +1,9 @@
+/**
+ * @flow
+ */
 const createQuery = require("phenomic-api-client/lib/query")
 
-const resolveURLsForDynamicParams = async function (fetch, route) {
+const resolveURLsForDynamicParams = async function (fetch: PhenomicFetch, route: PhenomicRoute) {
   if(!route.collection) {
     return route
   }
@@ -18,10 +21,13 @@ const resolveURLsForDynamicParams = async function (fetch, route) {
 
 const findPaginatedQuery = function (queries) {
   const key = Object.keys(queries).find(key => queries[key].hasOwnProperty("after"))
+  if(!key) {
+    return null
+  }
   return queries[key]
 }
 
-const resolveNextURLsInPagination = async function (path, query, fetch, urls = []) {
+const resolveNextURLsInPagination = async function (path: string, query: PhenomicQueryConfig, fetch: PhenomicFetch, urls: Array<string> = []) {
   urls = [ ...urls, path.replace("/:after?", query.after ? "/" + query.after : "") ]
   const nextPage = await fetch(createQuery(query))
   if(nextPage.hasNextPage) {
@@ -36,14 +42,14 @@ const resolveNextURLsInPagination = async function (path, query, fetch, urls = [
   }
 }
 
-const resolvePaginatedURLs = async function (fetch, route) {
+const resolvePaginatedURLs = async function (fetch: PhenomicFetch, route: PhenomicRoute) {
   if(!route.paginated) {
     return route.path
   }
   if(!route.getQueries) {
     return route.path
   }
-  const initialRouteParams = route.params || {}
+  const initialRouteParams: Object = route.params || {}
   const initialRouteQuery = route.getQueries({ params: initialRouteParams })
   const query = findPaginatedQuery(initialRouteQuery)
   if(!query) {
@@ -52,7 +58,7 @@ const resolvePaginatedURLs = async function (fetch, route) {
   return resolveNextURLsInPagination(route.path, query, fetch)
 }
 
-const flatten = array => {
+const flatten = (array: Array<any>) => {
   const flattenedArray = []
   array.forEach(item => {
     if(Array.isArray(item)) {
@@ -64,9 +70,9 @@ const flatten = array => {
   return flattenedArray
 }
 
-const normalizePath = path => path.replace(/^\//, "")
+const normalizePath = (path: string) => path.replace(/^\//, "")
 
-const resolveURLsToPrerender = async function (routes, fetch) {
+const resolveURLsToPrerender = async function (routes: Array<PhenomicRoute>, fetch: PhenomicFetch) {
   const dynamicRoutes = await Promise.all(routes.map(route => resolveURLsForDynamicParams(fetch, route)))
   const paginatedURLs = await Promise.all(flatten(dynamicRoutes).map(route => resolvePaginatedURLs(fetch, route)))
   return flatten(paginatedURLs).map(normalizePath)

@@ -20,9 +20,8 @@ function getMatch({ routes, location }) {
   })
 }
 
-function renderToString(store, { renderProps, redirectLocation }) {
+function renderToString(store, { renderProps, redirectLocation }, renderHTML) {
   const ReactDOMServer = require("react-dom/server")
-  const renderHTML = require("../server/renderHTML")
   const body = ReactDOMServer.renderToString(
     <Provider fetch={fetch} store={store}>
       <RouterContext { ...renderProps } />
@@ -43,7 +42,8 @@ async function serverRender (app, fetch, location) {
     const queries = item.getQueries(renderProps)
     return performQuery(store, fetch, Object.keys(queries).map(key => QueryString.encode(queries[key])))
   }))
-  const contents = await renderToString(store, { renderProps, redirectLocation })
+  const renderHTML = require("../server/renderHTML")
+  const contents = await app.renderToString(store, { renderProps, redirectLocation }, renderHTML)
   const state = store.getState()
   return [
     { path: path.join(location, "index.html"), contents },
@@ -53,3 +53,4 @@ async function serverRender (app, fetch, location) {
 }
 
 module.exports = serverRender
+module.exports.renderToString = renderToString

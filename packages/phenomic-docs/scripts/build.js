@@ -8,6 +8,7 @@ phenomic.build({
   renderer: require("phenomic-react"),
   plugins: [
     require("phenomic-plugin-transform-markdown"),
+    require("phenomic-plugin-directory-collector"),
   ],
 })
   .then(

@@ -8,6 +8,7 @@
     "babel-cli": "^6.18.0",
     "phenomic": "1.0.0",
     "phenomic-plugin-transform-markdown": "1.0.0",
+    "phenomic-plugin-directory-collector": "1.0.0",
     "phenomic-react": "1.0.0",
     "phenomic-webpack": "1.0.0",
     "react": "15.3.2",

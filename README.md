@@ -9,5 +9,4 @@ $ npm run build # generates all the files
 - search
 - favicon plugin in boilerplate
 - add support for CSS-in-JS with react-native-web
-- add flow
 - good dx

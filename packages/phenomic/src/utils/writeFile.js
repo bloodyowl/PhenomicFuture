@@ -1,8 +1,11 @@
+/**
+ * @flow
+ */
 const fs = require("fs")
 const mkdirp = require("mkdirp")
 const path = require("path")
 
-const writeFile = (filepath, data) => new Promise((resolve, reject) => {
+const writeFile = (filepath: string, data: string) => new Promise((resolve, reject) => {
   mkdirp(path.dirname(filepath), (error) => {
     if(error) {
       reject(error)

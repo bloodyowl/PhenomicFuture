@@ -1,17 +1,13 @@
+/**
+ * @flow
+ */
 const invariant = require("invariant")
 
-function query(config) {
+function query(config: PhenomicQueryConfig): PhenomicQueryConfig {
   invariant(
     typeof config.collection === "string",
     "A query must at least contain a collection"
   )
-  if(typeof config.by === "string" && config.by !== "default") {
-    invariant(
-      typeof config.value === "string",
-      `Your query for  ${ config.collection }/${ config.by } is filtered but you ` +
-      `didn't provide a \`value\``
-    )
-  }
   if(typeof config.id === "string") {
     return {
       collection: config.collection,
