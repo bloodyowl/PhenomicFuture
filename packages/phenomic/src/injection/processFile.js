@@ -20,11 +20,10 @@ const defaultTransformPlugin: PhenomicTransformPlugin = {
 
 async function processFile(db: PhenomicDB, file: PhenomicContentFile, plugins: Array<PhenomicPlugin>, isProduction: boolean) {
   const fileContents = await readFile(file.fullpath)
-  const transformPlugins = plugins.filter(plugin => plugin.type === "transform")
   const transformPlugin = plugins.find(plugin => {
-    return plugin.type === "transform" &&
-      Array.isArray(plugin.supportedFileTypes) &&
-      plugin.supportedFileTypes.includes(path.extname(file.name).slice(1))
+    // $FlowIssue
+    return Array.isArray(plugin.supportedFileTypes) &&
+      plugin.supportedFileTypes.indexOf(path.extname(file.name).slice(1)) !== -1
   })
   // $FlowIssue
   const parsed = await (transformPlugin || defaultTransformPlugin).transform(file, fileContents)

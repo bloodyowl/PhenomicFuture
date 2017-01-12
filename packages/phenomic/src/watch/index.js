@@ -14,9 +14,9 @@ const createErrorHandler = (client: Client) => (error: any) => {
 
 function getExtensionsToWatch(plugins): Array<string> {
   return plugins.reduce((acc, plugin) => {
-    if(plugin.type === "transform") {
-      const tranformPlugin: PhenomicTransformPlugin = plugin
-      acc.push(...tranformPlugin.supportedFileTypes)
+    // $FlowIssue
+    if(Array.isArray(plugin.supportedFileTypes)) {
+      acc.push(...plugin.supportedFileTypes)
     }
     return acc
   }, [])
@@ -38,7 +38,6 @@ function createWatcher(config: PhenomicConfig) {
     handleError(error)
     client.command(["watch-project", config.path], (error, response) => {
       handleError(error)
-
       const subcription = {
         expression: [
           "anyof",
